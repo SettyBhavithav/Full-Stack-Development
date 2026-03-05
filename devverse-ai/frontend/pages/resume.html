@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume AI | DevVerse AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .drop-zone {
+            border: 2px dashed rgba(99, 102, 241, 0.35);
+            transition: all 0.2s;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #818cf8;
+            background: rgba(99, 102, 241, 0.07);
+        }
+
+        .score-ring {
+            stroke-dasharray: 565;
+            stroke-dashoffset: 565;
+            transition: stroke-dashoffset 1.6s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .match-ring {
+            stroke-dasharray: 264;
+            stroke-dashoffset: 264;
+            transition: stroke-dashoffset 1.5s ease;
+        }
+
+        .bar-fill {
+            width: 0;
+            transition: width 1.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.93)
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(18px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .chip {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .result-card {
+            animation: slideUp 0.45s ease forwards;
+        }
+
+        .tier-badge {
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .check-row:not(:last-child) {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+    </style>
+</head>
+
+<body class="bg-[#060b14] text-slate-50 flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-14 md:w-56 glass-nav border-r border-white/05 flex flex-col h-full flex-shrink-0">
+        <div class="p-4 flex items-center justify-center md:justify-start gap-2.5 border-b border-white/05">
+            <i data-lucide="cpu" class="text-blue-400 w-5 h-5"
+                style="filter:drop-shadow(0 0 6px rgba(59,130,246,0.6))"></i>
+            <span class="hidden md:block text-sm font-bold">Devverse<span class="gradient-text">AI</span></span>
+        </div>
+        <nav class="flex-1 p-2 md:p-3 flex flex-col gap-1">
+            <a href="dashboard.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i><span
+                    class="hidden md:block">Dashboard</span>
+            </a>
+            <a href="ide.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="code-2" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Real-time
+                    IDE</span>
+            </a>
+            <a href="projects.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="kanban" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Projects</span>
+            </a>
+            <a href="#" class="nav-item active justify-center md:justify-start">
+                <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Resume
+                    AI</span>
+            </a>
+            <a href="interviews.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="brain" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Interview
+                    AI</span>
+            </a>
+            <a href="knowledge.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="database" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Knowledge
+                    Base</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex overflow-hidden">
+
+        <!-- LEFT: Upload Panel -->
+        <div class="w-80 flex-shrink-0 border-r border-slate-800 bg-slate-900 flex flex-col overflow-y-auto">
+            <div class="p-5 border-b border-slate-800">
+                <h2 class="font-bold text-base flex items-center gap-2 mb-1">
+                    <i data-lucide="scan-line" class="w-4 h-4 text-indigo-400"></i> ATS Resume Analyzer
+                </h2>
+                <p class="text-xs text-slate-500">Enterprise-grade ATS scoring like Workday, Greenhouse & Lever.</p>
+            </div>
+
+            <div class="p-5 flex flex-col gap-4">
+                <!-- Drop zone -->
+                <div id="drop-zone"
+                    class="drop-zone rounded-2xl p-7 flex flex-col items-center gap-3 cursor-pointer text-center"
+                    onclick="document.getElementById('file-input').click()">
+                    <div id="dz-icon" class="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
+                        <i data-lucide="upload-cloud" class="w-7 h-7 text-indigo-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-200">Drop PDF resume here</p>
+                        <p class="text-xs text-slate-500 mt-0.5">or click to browse</p>
+                    </div>
+                    <div id="file-name"
+                        class="hidden text-xs bg-indigo-500/10 text-indigo-300 px-3 py-1.5 rounded-full font-medium">
+                    </div>
+                </div>
+                <input type="file" id="file-input" accept=".pdf" class="hidden">
+
+                <!-- Job Description -->
+                <div class="flex flex-col gap-1.5">
+                    <label
+                        class="text-xs font-semibold text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
+                        <i data-lucide="briefcase" class="w-3 h-3"></i> Job Description
+                        <span class="text-indigo-400 normal-case tracking-normal font-normal">(for match %)</span>
+                    </label>
+                    <textarea id="job-desc" rows="6"
+                        class="auth-input rounded-xl px-3 py-2.5 text-sm resize-none w-full"
+                        placeholder="Paste job description here to see JD-specific skill match, missing keywords, and a tailored match score..."></textarea>
+                </div>
+
+                <!-- CTA -->
+                <button id="analyze-btn" disabled
+                    class="py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition
+                           disabled:opacity-40 disabled:cursor-not-allowed shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-2">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i> Analyze Resume
+                </button>
+
+                <!-- ATS Info -->
+                <div class="rounded-xl bg-slate-800/40 border border-slate-700/40 p-4 space-y-2 text-xs text-slate-500">
+                    <p class="font-bold text-slate-400 text-[11px] uppercase tracking-wider mb-2">📊 What We Check (9
+                        Dimensions)</p>
+                    <div class="grid grid-cols-2 gap-y-1.5 gap-x-2">
+                        <span class="flex items-center gap-1"><i data-lucide="user"
+                                class="w-2.5 h-2.5 text-blue-400"></i> Contact Info</span>
+                        <span class="flex items-center gap-1"><i data-lucide="layout-list"
+                                class="w-2.5 h-2.5 text-green-400"></i> Sections</span>
+                        <span class="flex items-center gap-1"><i data-lucide="code"
+                                class="w-2.5 h-2.5 text-purple-400"></i> Skills (11 cats)</span>
+                        <span class="flex items-center gap-1"><i data-lucide="hash"
+                                class="w-2.5 h-2.5 text-yellow-400"></i> Quantification</span>
+                        <span class="flex items-center gap-1"><i data-lucide="zap"
+                                class="w-2.5 h-2.5 text-orange-400"></i> Action Verbs</span>
+                        <span class="flex items-center gap-1"><i data-lucide="graduation-cap"
+                                class="w-2.5 h-2.5 text-pink-400"></i> Education</span>
+                        <span class="flex items-center gap-1"><i data-lucide="text"
+                                class="w-2.5 h-2.5 text-slate-400"></i> Content Depth</span>
+                        <span class="flex items-center gap-1"><i data-lucide="align-left"
+                                class="w-2.5 h-2.5 text-cyan-400"></i> Formatting</span>
+                        <span class="flex items-center gap-1"><i data-lucide="briefcase"
+                                class="w-2.5 h-2.5 text-teal-400"></i> Experience</span>
+                        <span class="flex items-center gap-1"><i data-lucide="target"
+                                class="w-2.5 h-2.5 text-red-400"></i> JD Match</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div class="flex-1 bg-slate-900/30 overflow-y-auto" id="results-area">
+
+            <!-- Placeholder -->
+            <div id="placeholder" class="h-full flex flex-col items-center justify-center gap-5 text-center p-10">
+                <div class="w-28 h-28 rounded-3xl bg-indigo-500/10 flex items-center justify-center">
+                    <i data-lucide="file-search" class="w-14 h-14 text-indigo-400 opacity-50"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-200 mb-2">Enterprise ATS Analyzer</h3>
+                    <p class="text-sm text-slate-500 max-w-sm">Uses the same scoring logic as Workday, Greenhouse, and
+                        Lever to tell you if your resume will pass automated screening.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-3 max-w-xs">
+                    <div class="rounded-xl bg-slate-800/60 border border-slate-700/40 p-3 text-left">
+                        <div class="text-lg font-black text-green-400">85+</div>
+                        <div class="text-[10px] text-slate-500">Top Tier — passes all ATS</div>
+                    </div>
+                    <div class="rounded-xl bg-slate-800/60 border border-slate-700/40 p-3 text-left">
+                        <div class="text-lg font-black text-blue-400">70–84</div>
+                        <div class="text-[10px] text-slate-500">Above Average — likely pass</div>
+                    </div>
+                    <div class="rounded-xl bg-slate-800/60 border border-slate-700/40 p-3 text-left">
+                        <div class="text-lg font-black text-yellow-400">55–69</div>
+                        <div class="text-[10px] text-slate-500">Average — borderline</div>
+                    </div>
+                    <div class="rounded-xl bg-slate-800/60 border border-slate-700/40 p-3 text-left">
+                        <div class="text-lg font-black text-red-400">&lt;55</div>
+                        <div class="text-[10px] text-slate-500">Below Avg — likely rejected</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div id="loading-view" class="hidden h-full flex flex-col items-center justify-center gap-5">
+                <div class="relative w-20 h-20">
+                    <svg viewBox="0 0 100 100" class="w-full h-full animate-spin">
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#1e1b4b" stroke-width="8" />
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#6366f1" stroke-width="8"
+                            stroke-dasharray="62.8 188.4" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <p class="text-slate-300 text-sm font-semibold">Analyzing your resume…</p>
+                <div class="text-xs text-slate-500 space-y-1.5 text-center" id="ls-container">
+                    <div id="ls1">🔍 Extracting text from PDF</div>
+                    <div id="ls2" class="opacity-30">📋 Detecting resume sections</div>
+                    <div id="ls3" class="opacity-30">🛠 Matching 150+ skill keywords</div>
+                    <div id="ls4" class="opacity-30">📊 Running 9 ATS scoring checks</div>
+                    <div id="ls5" class="opacity-30">💡 Generating improvement suggestions</div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="results-view" class="hidden p-6 flex flex-col gap-5">
+
+                <!-- HERO: Score + Tier -->
+                <div class="result-card rounded-2xl glass-panel p-6 flex flex-col md:flex-row items-center gap-6">
+                    <!-- Score Ring -->
+                    <div class="relative w-32 h-32 flex-shrink-0">
+                        <svg viewBox="0 0 200 200" class="w-full h-full -rotate-90">
+                            <circle cx="100" cy="100" r="90" fill="none" stroke="#1e293b" stroke-width="16" />
+                            <circle id="ats-ring" cx="100" cy="100" r="90" fill="none" stroke="#6366f1"
+                                stroke-width="16" class="score-ring" />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="ats-score-text" class="text-4xl font-black leading-none">0</span>
+                            <span class="text-xs text-slate-500">/100</span>
+                        </div>
+                    </div>
+                    <!-- Tier + description -->
+                    <div class="flex-1 text-center md:text-left">
+                        <div class="flex items-center gap-3 mb-2 justify-center md:justify-start flex-wrap">
+                            <span class="text-2xl font-black">ATS Score</span>
+                            <span id="tier-badge" class="tier-badge text-sm px-3 py-1 rounded-full">—</span>
+                        </div>
+                        <p id="tier-desc" class="text-slate-400 text-sm mb-3">—</p>
+                        <div class="flex flex-wrap gap-2 justify-center md:justify-start">
+                            <span class="text-[11px] bg-slate-800 rounded-full px-2.5 py-1 text-slate-400"><b
+                                    class="text-slate-200" id="s-skills">0</b> skills</span>
+                            <span class="text-[11px] bg-slate-800 rounded-full px-2.5 py-1 text-slate-400"><b
+                                    class="text-slate-200" id="s-sections">0</b> sections</span>
+                            <span class="text-[11px] bg-slate-800 rounded-full px-2.5 py-1 text-slate-400"><b
+                                    class="text-slate-200" id="s-verbs">0</b> action verbs</span>
+                            <span class="text-[11px] bg-slate-800 rounded-full px-2.5 py-1 text-slate-400"><b
+                                    class="text-slate-200" id="s-quant">0</b> quantifications</span>
+                            <span class="text-[11px] bg-slate-800 rounded-full px-2.5 py-1 text-slate-400"><b
+                                    class="text-slate-200" id="s-words">0</b> words</span>
+                            <span class="text-[11px] bg-slate-800 rounded-full px-2.5 py-1 text-slate-400">Edu: <b
+                                    class="text-slate-200" id="s-edu">—</b></span>
+                        </div>
+                    </div>
+                    <!-- Job Match (if JD provided) -->
+                    <div id="match-block" class="hidden flex-shrink-0 flex flex-col items-center gap-2">
+                        <div class="relative w-20 h-20">
+                            <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="#1e293b" stroke-width="10" />
+                                <circle id="match-ring" cx="50" cy="50" r="42" fill="none" stroke="#a855f7"
+                                    stroke-width="10" class="match-ring" />
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center text-sm font-bold"
+                                id="match-pct-text">0%</div>
+                        </div>
+                        <p class="text-[11px] text-slate-500 text-center">JD Match</p>
+                    </div>
+                </div>
+
+                <!-- Score Breakdown Bars -->
+                <div class="result-card glass-panel rounded-2xl p-5">
+                    <h3 class="font-bold text-sm mb-4 flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-400"></i> 9-Dimension ATS Breakdown
+                    </h3>
+                    <div id="score-breakdown" class="flex flex-col gap-3.5"></div>
+                </div>
+
+                <!-- Row: Contact + Sections -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Contact Info Checklist -->
+                    <div class="result-card glass-panel rounded-2xl p-5">
+                        <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                            <i data-lucide="user-check" class="w-4 h-4 text-blue-400"></i> Contact Info
+                        </h3>
+                        <div id="contact-list" class="flex flex-col divide-y divide-slate-800/50"></div>
+                    </div>
+                    <!-- Sections Checklist -->
+                    <div class="result-card glass-panel rounded-2xl p-5">
+                        <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                            <i data-lucide="layout-list" class="w-4 h-4 text-green-400"></i> Resume Sections
+                        </h3>
+                        <div id="sections-list" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+
+                <!-- Formatting Issues + Quantification -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="result-card glass-panel rounded-2xl p-5">
+                        <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                            <i data-lucide="align-left" class="w-4 h-4 text-cyan-400"></i> ATS Formatting
+                        </h3>
+                        <div id="formatting-list" class="flex flex-col gap-2"></div>
+                    </div>
+                    <div class="result-card glass-panel rounded-2xl p-5">
+                        <h3 class="font-bold text-sm mb-3 flex items-center gap-2">
+                            <i data-lucide="hash" class="w-4 h-4 text-yellow-400"></i> Quantified Achievements
+                        </h3>
+                        <div id="quant-list"></div>
+                    </div>
+                </div>
+
+                <!-- Action Verbs -->
+                <div class="result-card glass-panel rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-sm flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4 text-orange-400"></i> Action Verbs
+                        </h3>
+                        <span class="text-[11px] text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full font-bold"
+                            id="high-impact-label">0 high-impact</span>
+                    </div>
+                    <div id="verbs-list" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Skills by Category -->
+                <div class="result-card glass-panel rounded-2xl p-5">
+                    <h3 class="font-bold text-sm mb-4 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i> Detected Skills by Category
+                    </h3>
+                    <div id="skills-by-cat" class="flex flex-col gap-4"></div>
+                </div>
+
+                <!-- Job Match Details -->
+                <div id="jd-section" class="hidden result-card glass-panel rounded-2xl p-5 border border-purple-500/20">
+                    <h3 class="font-bold text-sm mb-4 flex items-center gap-2">
+                        <i data-lucide="target" class="w-4 h-4 text-purple-400"></i> Job Description Match
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-[11px] text-slate-500 uppercase tracking-wider font-bold mb-2">✅ Matched
+                                Skills</p>
+                            <div id="matched-skills" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-slate-500 uppercase tracking-wider font-bold mb-2">❌ Missing from
+                                JD</p>
+                            <div id="missing-jd-skills" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Suggestions -->
+                <div class="result-card glass-panel rounded-2xl p-5">
+                    <h3 class="font-bold text-sm mb-4 flex items-center gap-2">
+                        <i data-lucide="lightbulb" class="w-4 h-4 text-yellow-400"></i> AI Improvement Plan
+                    </h3>
+                    <div id="suggestions-list" class="flex flex-col gap-2.5"></div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        const token = localStorage.getItem('devverse_token');
+        if (!token) window.location.href = '../index.html';
+
+        let file = null;
+
+        // File handling
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        fileInput.addEventListener('change', e => { if (e.target.files[0]) setFile(e.target.files[0]); });
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault(); dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+        });
+
+        function setFile(f) {
+            if (!f.name.endsWith('.pdf')) { alert('Please upload a PDF file.'); return; }
+            file = f;
+            const nm = document.getElementById('file-name');
+            nm.textContent = `📄 ${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+            nm.classList.remove('hidden');
+            document.getElementById('dz-icon').innerHTML = '<i data-lucide="check-circle-2" class="w-7 h-7 text-green-400"></i>';
+            document.getElementById('analyze-btn').disabled = false;
+            lucide.createIcons();
+        }
+
+        // Analyze
+        document.getElementById('analyze-btn').addEventListener('click', async () => {
+            if (!file) return;
+            showLoading(); animateLoadingSteps();
+            const formData = new FormData();
+            formData.append('file', file);
+            const jd = document.getElementById('job-desc').value.trim();
+            if (jd) formData.append('job_description', jd);
+            try {
+                const res = await fetch('http://localhost:5001/api/resume/analyze', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.error) { alert(data.error); showPlaceholder(); return; }
+                setTimeout(() => showResults(data), 2000);
+            } catch (e) {
+                alert('Cannot reach Python AI service on port 5001. Please start it first.');
+                showPlaceholder();
+            }
+        });
+
+        function animateLoadingSteps() {
+            ['ls1', 'ls2', 'ls3', 'ls4', 'ls5'].forEach((id, i) => {
+                document.getElementById(id).classList.add('opacity-30');
+                setTimeout(() => {
+                    document.getElementById(id).classList.remove('opacity-30');
+                    document.getElementById(id).textContent = '✅ ' + document.getElementById(id).textContent.trim();
+                }, i * 380);
+            });
+        }
+
+        function showPlaceholder() {
+            document.getElementById('placeholder').classList.remove('hidden');
+            document.getElementById('loading-view').classList.add('hidden');
+            document.getElementById('results-view').classList.add('hidden');
+        }
+        function showLoading() {
+            document.getElementById('placeholder').classList.add('hidden');
+            document.getElementById('loading-view').classList.remove('hidden');
+            document.getElementById('results-view').classList.add('hidden');
+        }
+
+        // ---- RENDER RESULTS ----
+        function showResults(d) {
+            document.getElementById('loading-view').classList.add('hidden');
+            const rv = document.getElementById('results-view');
+            rv.classList.remove('hidden');
+            rv.classList.add('flex', 'flex-col');
+
+            // ATS Score Ring
+            const score = d.ats_score || 0;
+            const ring = document.getElementById('ats-ring');
+            ring.style.strokeDashoffset = 565 - (565 * score / 100);
+            ring.style.stroke = score >= 85 ? '#10b981' : score >= 70 ? '#3b82f6' : score >= 55 ? '#f59e0b' : '#ef4444';
+            document.getElementById('ats-score-text').textContent = score;
+
+            // Tier
+            const tier = d.tier || {};
+            const tierColors = { green: 'bg-green-400/15 text-green-400', blue: 'bg-blue-400/15 text-blue-400', yellow: 'bg-yellow-400/15 text-yellow-400', red: 'bg-red-400/15 text-red-400' };
+            const tb = document.getElementById('tier-badge');
+            tb.className = `tier-badge text-sm px-3 py-1 rounded-full ${tierColors[tier.color] || 'bg-slate-700 text-slate-300'}`;
+            tb.textContent = tier.label || '—';
+            document.getElementById('tier-desc').textContent = tier.desc || '';
+
+            // Stats
+            document.getElementById('s-skills').textContent = (d.skills_flat || []).length;
+            document.getElementById('s-sections').textContent = (d.sections_found || []).length;
+            document.getElementById('s-verbs').textContent = (d.action_verbs || []).length;
+            document.getElementById('s-quant').textContent = d.quantified_count || 0;
+            document.getElementById('s-words').textContent = d.word_count || 0;
+            document.getElementById('s-edu').textContent = (d.education_level || 'none').replace('_', ' ');
+
+            // Job Match Ring
+            if (d.job_match_score > 0) {
+                document.getElementById('match-block').classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('match-ring').style.strokeDashoffset = 264 - (264 * d.job_match_score / 100);
+                }, 300);
+                document.getElementById('match-pct-text').textContent = d.job_match_score + '%';
+            }
+
+            // ---- Score Breakdown ----
+            const dimNames = {
+                contact: '👤 Contact Info', sections: '📋 Sections', skills: '🛠 Skills',
+                quantification: '📊 Quantification', action_verbs: '⚡ Action Verbs',
+                education: '🎓 Education', length: '📝 Content Depth',
+                formatting: '📐 ATS Formatting', experience: '💼 Experience', job_match: '🎯 JD Match'
+            };
+            const sb = document.getElementById('score-breakdown');
+            sb.innerHTML = '';
+            const breakdown = d.score_breakdown || {};
+            Object.entries(breakdown).forEach(([key, info]) => {
+                if (info.max === 0) return;
+                const pct = Math.round((info.score / info.max) * 100);
+                const barColor = pct >= 80 ? 'bg-green-500' : pct >= 55 ? 'bg-blue-500' : pct >= 35 ? 'bg-yellow-500' : 'bg-red-500';
+                sb.innerHTML += `
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-slate-400 w-36 shrink-0">${dimNames[key] || key}</span>
+                    <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full ${barColor} rounded-full bar-fill" data-width="${pct}"></div>
+                    </div>
+                    <span class="text-xs text-slate-500 w-20 text-right shrink-0">${info.score}/${info.max} <span class="text-[10px] text-slate-600">${info.detail || ''}</span></span>
+                </div>`;
+            });
+            setTimeout(() => document.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.width + '%'), 150);
+
+            // ---- Contact Info ----
+            const contactItems = [
+                { key: 'Email', icon: 'mail' },
+                { key: 'Phone', icon: 'phone' },
+                { key: 'LinkedIn', icon: 'linkedin' },
+                { key: 'GitHub', icon: 'github' },
+                { key: 'Portfolio/Website', icon: 'globe' },
+            ];
+            const cFound = d.contact_found || [];
+            const cMissing = d.contact_missing || [];
+            document.getElementById('contact-list').innerHTML = contactItems.map(item => {
+                const found = cFound.includes(item.key);
+                return `<div class="check-row flex items-center gap-3 py-2">
+                <i data-lucide="${item.icon}" class="w-3.5 h-3.5 ${found ? 'text-blue-400' : 'text-slate-600'}"></i>
+                <span class="text-xs ${found ? 'text-slate-200' : 'text-slate-500 line-through'}">${item.key}</span>
+                <span class="ml-auto text-[10px] font-bold ${found ? 'text-green-400' : 'text-red-400'}">${found ? '✓' : '✗'}</span>
+            </div>`;
+            }).join('');
+
+            // ---- Sections ----
+            const sectionsMeta = ['summary', 'education', 'experience', 'projects', 'skills', 'achievements', 'certifications'];
+            document.getElementById('sections-list').innerHTML = sectionsMeta.map(s => {
+                const found = (d.sections_found || []).includes(s);
+                return `<span class="chip text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 ${found ? 'bg-green-500/15 text-green-400 border border-green-500/20' : 'bg-slate-800 text-slate-500'}">
+                ${found ? '✅' : '⬜'} ${s.charAt(0).toUpperCase() + s.slice(1)}
+            </span>`;
+            }).join('');
+
+            // ---- Formatting ----
+            const fmtList = document.getElementById('formatting-list');
+            const bonuses = d.formatting_bonuses || [];
+            const issues = d.formatting_issues || [];
+            fmtList.innerHTML = [
+                ...bonuses.map(b => `<div class="flex items-start gap-2 text-xs text-green-400"><span class="shrink-0">✅</span>${b}</div>`),
+                ...issues.map(i => `<div class="flex items-start gap-2 text-xs text-red-400"><span class="shrink-0">⚠</span>${i}</div>`),
+            ].join('') || '<p class="text-xs text-slate-500 italic">No formatting issues detected.</p>';
+
+            // ---- Quantification ----
+            const qEl = document.getElementById('quant-list');
+            const qCount = d.quantified_count || 0;
+            const qEx = d.quantified_examples || [];
+            qEl.innerHTML = `
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl font-black ${qCount >= 3 ? 'text-green-400' : qCount >= 1 ? 'text-yellow-400' : 'text-red-400'}">${qCount}</span>
+                <span class="text-xs text-slate-400">quantified achievement${qCount !== 1 ? 's' : ''} detected</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+                ${qEx.map(e => `<span class="chip text-[11px] px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-300 font-mono">${e}</span>`).join('')}
+            </div>
+            ${qCount < 3 ? '<p class="text-[11px] text-slate-500 mt-2 italic">ATS systems score higher when you use numbers, percentages and monetary values.</p>' : ''}`;
+
+            // ---- Action Verbs ----
+            document.getElementById('high-impact-label').textContent = `${(d.high_impact_verbs || []).length} high-impact`;
+            const verbs = d.action_verbs || [];
+            const hiSet = new Set(d.high_impact_verbs || []);
+            document.getElementById('verbs-list').innerHTML = verbs.length
+                ? verbs.map(v => `<span class="chip text-xs px-2.5 py-1 rounded-full font-medium capitalize ${hiSet.has(v) ? 'bg-orange-500/15 text-orange-300 border border-orange-500/20' : 'bg-slate-800 text-slate-400'}">${v}</span>`).join('')
+                : '<p class="text-xs text-slate-500 italic">No action verbs detected. Use: Led, Architected, Deployed, Optimized, Scaled</p>';
+
+            // ---- Skills ----
+            const catColors = { 'Programming Languages': 'blue', 'Frontend': 'purple', 'Backend': 'green', 'Mobile': 'teal', 'Databases': 'orange', 'Cloud & DevOps': 'red', 'AI & Data Science': 'pink', 'Security': 'rose', 'Architecture & Design': 'indigo', 'Tools & Collaboration': 'cyan', 'Testing': 'amber' };
+            const skillsCat = d.skills_by_category || {};
+            const catEl = document.getElementById('skills-by-cat');
+            catEl.innerHTML = Object.keys(skillsCat).length === 0
+                ? '<p class="text-sm text-slate-500 italic">No well-known skills detected. Ensure your PDF is text-based (not a scanned image).</p>'
+                : Object.entries(skillsCat).map(([cat, skills]) => {
+                    const c = catColors[cat] || 'slate';
+                    return `<div>
+                    <p class="text-xs font-bold text-${c}-400 mb-2 uppercase tracking-wider">${cat} <span class="text-slate-600 normal-case font-normal">(${skills.length})</span></p>
+                    <div class="flex flex-wrap gap-1.5">
+                        ${skills.map(s => `<span class="chip text-xs px-2.5 py-1 rounded-lg bg-${c}-500/10 text-${c}-300 font-medium border border-${c}-500/15">${s}</span>`).join('')}
+                    </div>
+                </div>`;
+                }).join('');
+
+            // ---- JD Match ----
+            if (d.job_match_score > 0) {
+                document.getElementById('jd-section').classList.remove('hidden');
+                document.getElementById('matched-skills').innerHTML = (d.matched_skills || []).map(s =>
+                    `<span class="chip text-[11px] px-2 py-0.5 rounded-md bg-green-500/15 text-green-300 font-medium">${s}</span>`
+                ).join('') || '<span class="text-xs text-slate-500 italic">None matched</span>';
+                document.getElementById('missing-jd-skills').innerHTML = (d.missing_jd_skills || []).map(s =>
+                    `<span class="chip text-[11px] px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 font-medium">${s}</span>`
+                ).join('') || '<span class="text-xs text-green-400 italic">All JD skills present!</span>';
+            }
+
+            // ---- Suggestions ----
+            const typeStyle = {
+                error: 'bg-red-500/8 border border-red-500/20 text-red-400',
+                warning: 'bg-yellow-500/8 border border-yellow-500/20 text-yellow-300',
+                info: 'bg-blue-500/8 border border-blue-500/15 text-blue-300',
+                success: 'bg-green-500/8 border border-green-500/15 text-green-400',
+            };
+            const typeIcon = { error: 'alert-circle', warning: 'alert-triangle', info: 'info', success: 'check-circle-2' };
+            const sugEl = document.getElementById('suggestions-list');
+            sugEl.innerHTML = (d.suggestions || []).map(s => {
+                const style = typeStyle[s.type] || typeStyle.info;
+                const icon = typeIcon[s.type] || 'info';
+                return `<div class="flex items-start gap-3 rounded-xl px-4 py-3 ${style}">
+                <i data-lucide="${icon}" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                <span class="text-sm">${s.text}</span>
+            </div>`;
+            }).join('') || '<p class="text-sm text-slate-500">No suggestions.</p>';
+
+            lucide.createIcons();
+        }
+    </script>
+</body>
+
+</html>

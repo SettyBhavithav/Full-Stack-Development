@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevVerse AI | The Intelligent Developer Platform</title>
+    <meta name="description"
+        content="DevVerse AI combines Real-time IDE, Kanban boards, AI Resume Parsing, Interview Prep and a Knowledge Base into one unified SaaS workspace.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./css/styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .navbar-scroll {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .hero-cta-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-cta-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .hero-cta-btn:hover::before {
+            left: 100%;
+        }
+
+        .hero-cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5);
+        }
+
+        .auth-modal-header {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.08));
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .logo-glow {
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
+        }
+
+        .stat-number {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+
+<body class="bg-[#060b14] text-slate-50 min-h-screen relative overflow-x-hidden">
+
+    <!-- Animated Background -->
+    <div class="orb-bg">
+        <div class="orb-accent"></div>
+    </div>
+    <div class="grid-overlay"></div>
+
+    <!-- Navbar -->
+    <nav id="main-nav"
+        class="glass-nav sticky top-0 z-50 px-6 py-3.5 flex justify-between items-center transition-all duration-300">
+        <div class="flex items-center gap-2.5">
+            <i data-lucide="cpu" class="text-blue-400 w-7 h-7 logo-glow"></i>
+            <span class="text-lg font-bold tracking-tight">Devverse<span class="gradient-text">AI</span></span>
+        </div>
+        <div class="hidden md:flex items-center gap-6 text-sm text-slate-400">
+            <a href="#features" class="hover:text-slate-100 transition">Features</a>
+            <a href="#" class="hover:text-slate-100 transition">Docs</a>
+            <a href="#" class="hover:text-slate-100 transition">Pricing</a>
+        </div>
+        <div class="flex gap-3 items-center">
+            <button id="show-login"
+                class="text-slate-300 hover:text-white transition font-medium px-4 py-2 text-sm rounded-lg hover:bg-white/5">Log
+                in</button>
+            <button id="show-register"
+                class="hero-cta-btn transition px-5 py-2 rounded-xl font-semibold text-sm text-white shadow-lg">Sign up
+                free</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main id="hero-view" class="relative fade-in">
+        <div class="max-w-6xl mx-auto px-6 pt-24 pb-16 text-center">
+
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-medium mb-8 slide-up"
+                style="animation-delay:0s">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                Production-ready developer platform · v2.0
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 slide-up leading-[1.05]"
+                style="animation-delay: 0.08s">
+                The Intelligent<br>
+                <span class="gradient-text">Developer Platform</span>
+            </h1>
+
+            <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 slide-up leading-relaxed"
+                style="animation-delay: 0.18s">
+                Replace your scattered tools. DevVerse AI combines a <strong class="text-slate-300">Real-time
+                    IDE</strong>, Kanban boards, <strong class="text-slate-300">AI Interview Prep</strong>, Resume
+                Parsing and a Knowledge Base — all in one unified workspace.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center slide-up" style="animation-delay: 0.28s">
+                <button id="start-btn"
+                    class="hero-cta-btn px-8 py-3.5 rounded-xl font-bold text-base text-white transition">
+                    Start Building Free →
+                </button>
+                <button id="show-login"
+                    class="px-8 py-3.5 rounded-xl font-bold text-base text-slate-300 bg-white/5 border border-white/10 hover:bg-white/10 transition">
+                    Sign In
+                </button>
+            </div>
+
+            <!-- Stats strip -->
+            <div class="flex flex-wrap items-center justify-center gap-8 mt-14 slide-up" style="animation-delay:0.36s">
+                <div class="text-center">
+                    <div class="text-2xl font-bold stat-number text-white">80+</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Interview Problems</div>
+                </div>
+                <div class="w-px h-8 bg-slate-800 hidden sm:block"></div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold stat-number text-white">5</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Integrated Modules</div>
+                </div>
+                <div class="w-px h-8 bg-slate-800 hidden sm:block"></div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold stat-number text-white">AI</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Powered Feedback</div>
+                </div>
+                <div class="w-px h-8 bg-slate-800 hidden sm:block"></div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold stat-number gradient-text">Real-time</div>
+                    <div class="text-xs text-slate-500 mt-0.5">Collaboration</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Mockup -->
+        <div class="max-w-4xl mx-auto px-6 mb-20 slide-up" style="animation-delay:0.42s">
+            <div
+                class="hero-mockup glass-panel-bright rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden relative perspective-1000">
+                <!-- Window chrome -->
+                <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-700/50 bg-[#0d1117]">
+                    <div class="w-3 h-3 rounded-full bg-red-500/90"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/90"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/90"></div>
+                    <div class="ml-4 flex gap-1">
+                        <div
+                            class="px-3 py-0.5 rounded-t text-[11px] font-mono text-yellow-300/80 bg-[#1e1e1e] border-t border-x border-slate-700">
+                            main.js</div>
+                        <div
+                            class="px-3 py-0.5 rounded-t text-[11px] font-mono text-slate-500 hover:text-slate-300 transition">
+                            solution.py</div>
+                    </div>
+                </div>
+                <!-- Code content -->
+                <div class="bg-[#1e1e1e] p-6 text-left font-mono text-sm leading-relaxed min-h-[260px]">
+                    <p><span class="text-[#c586c0]">import</span> <span class="text-[#9cdcfe]">{ DevVerse }</span> <span
+                            class="text-[#c586c0]">from</span> <span class="text-[#ce9178]">'@devverse/core'</span>;</p>
+                    <br>
+                    <p><span class="text-[#569cd6]">const</span> <span class="text-[#9cdcfe]">app</span> = <span
+                            class="text-[#dcdcaa]">new</span> <span class="text-[#4ec9b0]">DevVerse</span>({</p>
+                    <p class="pl-6"><span class="text-[#9cdcfe]">mode</span>: <span
+                            class="text-[#ce9178]">'production'</span>,</p>
+                    <p class="pl-6"><span class="text-[#9cdcfe]">ai_enabled</span>: <span
+                            class="text-[#569cd6]">true</span>,</p>
+                    <p class="pl-6"><span class="text-[#9cdcfe]">modules</span>: [<span
+                            class="text-[#ce9178]">'IDE'</span>, <span class="text-[#ce9178]">'Kanban'</span>, <span
+                            class="text-[#ce9178]">'InterviewAI'</span>, <span class="text-[#ce9178]">'ResumeAI'</span>,
+                        <span class="text-[#ce9178]">'KnowledgeBase'</span>]</p>
+                    <p>});</p>
+                    <br>
+                    <p><span class="text-[#4ec9b0]">app</span>.<span class="text-[#dcdcaa]">initialize</span>();</p>
+                    <br>
+                    <p class="text-green-400"><span class="text-slate-600">// ✓ All 5 modules loaded · AI services
+                            connected · 3 collaborators online</span></p>
+                    <div class="mt-4 flex items-center gap-2">
+                        <div class="w-2 h-4 bg-[#569cd6] animate-pulse rounded-sm opacity-80"></div>
+                    </div>
+                </div>
+                <!-- Bottom status bar -->
+                <div
+                    class="flex items-center justify-between px-4 py-1.5 bg-[#007ACC] text-white text-[11px] font-mono">
+                    <div class="flex items-center gap-3">
+                        <span>⎇ main</span>
+                        <span class="opacity-60">|</span>
+                        <span>DevVerse AI · Workspace</span>
+                    </div>
+                    <div class="flex items-center gap-3 opacity-80">
+                        <span>JavaScript</span>
+                        <span>UTF-8</span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> 3 online
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <section id="features" class="max-w-6xl mx-auto px-6 pb-24">
+            <div class="text-center mb-12 slide-up">
+                <h2 class="text-3xl md:text-4xl font-bold mb-3">Everything you need, <span class="gradient-text">nothing
+                        you don't</span></h2>
+                <p class="text-slate-400 max-w-xl mx-auto">Five powerful modules working together seamlessly.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="feature-card slide-up" style="animation-delay:0.05s">
+                    <div class="feature-icon fi-blue">
+                        <i data-lucide="code-2" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-base mb-2 text-slate-100">Real-time IDE</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Monaco-powered editor with live collaboration,
+                        chat, and multi-language support. Code together, instantly.</p>
+                </div>
+                <div class="feature-card slide-up" style="animation-delay:0.1s">
+                    <div class="feature-icon fi-purple">
+                        <i data-lucide="brain" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-base mb-2 text-slate-100">Interview AI</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">80+ curated problems with AI-powered code
+                        analysis, time/space complexity scoring, and actionable hints.</p>
+                </div>
+                <div class="feature-card slide-up" style="animation-delay:0.15s">
+                    <div class="feature-icon fi-green">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-base mb-2 text-slate-100">Resume Analyzer</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Upload your PDF resume and get instant AI-driven
+                        skill extraction, gap analysis, and improvement suggestions.</p>
+                </div>
+                <div class="feature-card slide-up" style="animation-delay:0.2s">
+                    <div class="feature-icon fi-cyan">
+                        <i data-lucide="kanban" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-base mb-2 text-slate-100">Project Kanban</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Drag-and-drop Kanban boards for managing tasks,
+                        sprints, and milestones within your team projects.</p>
+                </div>
+                <div class="feature-card slide-up" style="animation-delay:0.25s">
+                    <div class="feature-icon fi-teal">
+                        <i data-lucide="database" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-base mb-2 text-slate-100">Knowledge Base</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">AI-powered document management with semantic
+                        search and intelligent Q&A over your uploaded knowledge.</p>
+                </div>
+                <div class="feature-card slide-up flex flex-col justify-center items-center text-center"
+                    style="animation-delay:0.3s">
+                    <div
+                        class="w-12 h-12 rounded-full border-2 border-dashed border-slate-600 flex items-center justify-center mb-4 text-slate-500">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-bold text-base mb-2 text-slate-400">More coming soon</h3>
+                    <p class="text-slate-500 text-sm">Code review AI, pair programming tools, and team analytics.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-[#060b14]/80 backdrop-blur-md fade-in">
+        <div
+            class="glass-panel-bright w-full max-w-sm rounded-2xl overflow-hidden slide-up shadow-2xl relative border border-white/08">
+            <!-- Modal Header -->
+            <div class="auth-modal-header px-8 pt-8 pb-6">
+                <button id="close-modal"
+                    class="absolute top-4 right-4 text-slate-500 hover:text-slate-200 transition p-1 rounded-lg hover:bg-white/05">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="cpu" class="text-blue-400 w-5 h-5 logo-glow"></i>
+                    <span class="text-sm font-semibold text-blue-300">DevVerse AI</span>
+                </div>
+                <h2 id="auth-title" class="text-2xl font-bold text-white">Welcome back</h2>
+                <p class="text-slate-400 text-sm mt-1">Sign in to your workspace</p>
+            </div>
+
+            <!-- Form -->
+            <div class="px-8 pb-8">
+                <form id="auth-form" class="flex flex-col gap-4 mt-2">
+                    <div id="username-field" class="hidden flex-col gap-1.5">
+                        <label class="text-xs font-medium text-slate-400">Username</label>
+                        <input type="text" id="username" class="auth-input rounded-xl px-4 py-2.5 w-full text-sm"
+                            placeholder="AlphaDevX">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-medium text-slate-400">Email address</label>
+                        <input type="email" id="email" class="auth-input rounded-xl px-4 py-2.5 w-full text-sm"
+                            placeholder="dev@example.com" required>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-medium text-slate-400">Password</label>
+                            <a href="#" class="text-xs text-blue-400 hover:text-blue-300 transition"
+                                id="forgot-link">Forgot?</a>
+                        </div>
+                        <input type="password" id="password" class="auth-input rounded-xl px-4 py-2.5 w-full text-sm"
+                            placeholder="••••••••" required>
+                    </div>
+                    <button type="submit"
+                        class="hero-cta-btn w-full py-2.5 rounded-xl font-bold text-sm text-white mt-1 transition flex items-center justify-center gap-2">
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        <span id="submit-label">Sign In</span>
+                    </button>
+                </form>
+                <p id="auth-toggle-text" class="text-sm text-slate-500 text-center mt-5">
+                    Don't have an account? <span id="auth-toggle"
+                        class="text-blue-400 cursor-pointer hover:text-blue-300 transition font-medium">Create one
+                        →</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/app.js"></script>
+    <script>
+        lucide.createIcons();
+
+        // Override start-btn to open register modal
+        const startBtn = document.getElementById('start-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                if (typeof openAuth === 'function') openAuth(false);
+            });
+        }
+
+        // Update auth title and submit label based on mode
+        const origUpdate = window.updateAuthView;
+        window.updateAuthView = function () {
+            if (typeof origUpdate === 'function') origUpdate();
+            const lbl = document.getElementById('submit-label');
+            const link = document.getElementById('forgot-link');
+            if (lbl) lbl.textContent = (window.isLogin ?? true) ? 'Sign In' : 'Create Account';
+            if (link) link.style.display = (window.isLogin ?? true) ? '' : 'none';
+            const title = document.getElementById('auth-title');
+            const sub = title?.nextElementSibling;
+            if (title) title.textContent = (window.isLogin ?? true) ? 'Welcome back' : 'Create your account';
+            if (sub) sub.textContent = (window.isLogin ?? true) ? 'Sign in to your workspace' : 'Join thousands of developers';
+        };
+    </script>
+</body>
+
+</html>

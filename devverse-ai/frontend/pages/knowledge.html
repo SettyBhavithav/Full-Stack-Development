@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Base | DevVerse AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .drop-zone {
+            border: 2px dashed rgba(20, 184, 166, 0.3);
+            transition: all .2s;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #14b8a6;
+            background: rgba(20, 184, 166, 0.06);
+        }
+
+        .doc-card {
+            transition: all .15s;
+        }
+
+        .doc-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .tag-chip {
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .tag-chip.active {
+            background: rgba(20, 184, 166, 0.2);
+            color: #2dd4bf;
+            border-color: rgba(20, 184, 166, 0.4);
+        }
+
+        .result-card {
+            animation: slideUp .3s ease forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .highlight {
+            background: rgba(234, 179, 8, .25);
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .score-bar {
+            height: 3px;
+            background: linear-gradient(to right, #14b8a6, #0ea5e9);
+            border-radius: 2px;
+        }
+
+        /* ── Inline Reader Panel ── */
+        #inline-reader {
+            width: 0;
+            flex-shrink: 0;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            border-left: 0px solid rgba(255, 255, 255, 0.06);
+            background: rgba(6, 11, 20, 0.95);
+            transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                border-left-width 0.35s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #inline-reader.open {
+            width: 52%;
+            border-left-width: 1px;
+            overflow-x: hidden;
+            overflow-y: visible;
+        }
+
+        .reader-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+            gap: 12px;
+            background: rgba(10, 17, 32, 0.98);
+        }
+
+        .reader-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 32px 36px;
+        }
+
+        /* Typography */
+        .reader-scroll h1 {
+            font-size: 1.3em;
+            font-weight: 800;
+            color: #f1f5f9;
+            margin: 1.6em 0 0.5em;
+            line-height: 1.3;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .reader-scroll h2 {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin: 1.4em 0 0.5em;
+            line-height: 1.3;
+            font-family: 'Inter', sans-serif;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .reader-scroll h3 {
+            font-size: 1em;
+            font-weight: 600;
+            color: #94a3b8;
+            margin: 1.2em 0 0.4em;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .reader-scroll p {
+            font-size: 14px;
+            line-height: 1.9;
+            color: #94a3b8;
+            margin: 0.6em 0;
+        }
+
+        .reader-scroll ul {
+            margin: 0.6em 0 0.6em 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .reader-scroll ul li {
+            display: flex;
+            gap: 10px;
+            font-size: 14px;
+            line-height: 1.75;
+            color: #94a3b8;
+            margin: 5px 0;
+            padding: 4px 0;
+        }
+
+        .reader-scroll ul li::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #14b8a6;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 8px;
+        }
+
+        .reader-scroll ol {
+            margin: 0.6em 0 0.6em 0;
+            padding: 0;
+            list-style: none;
+            counter-reset: ol-counter;
+        }
+
+        .reader-scroll ol li {
+            display: flex;
+            gap: 10px;
+            font-size: 14px;
+            line-height: 1.75;
+            color: #94a3b8;
+            margin: 5px 0;
+            padding: 4px 0;
+            counter-increment: ol-counter;
+        }
+
+        .reader-scroll ol li::before {
+            content: counter(ol-counter) '.';
+            color: #14b8a6;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+            min-width: 20px;
+            margin-top: 2px;
+        }
+
+        .reader-scroll strong {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+
+        .reader-scroll em {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .reader-scroll code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        .reader-scroll hr {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin: 1.6em 0;
+        }
+
+        .reader-search-hl {
+            background: rgba(234, 179, 8, .3);
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+
+        .font-ctrl button {
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .font-ctrl button:hover {
+            background: rgba(255, 255, 255, 0.09);
+            color: #f1f5f9;
+        }
+    </style>
+</head>
+
+<body class="bg-[#060b14] text-slate-50 flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-14 md:w-56 glass-nav border-r border-white/05 flex flex-col h-full flex-shrink-0">
+        <div class="p-4 flex items-center justify-center md:justify-start gap-2.5 border-b border-white/05">
+            <i data-lucide="cpu" class="text-blue-400 w-5 h-5"
+                style="filter:drop-shadow(0 0 6px rgba(59,130,246,0.6))"></i>
+            <span class="hidden md:block text-sm font-bold">Devverse<span class="gradient-text">AI</span></span>
+        </div>
+        <nav class="flex-1 p-2 md:p-3 flex flex-col gap-1">
+            <a href="dashboard.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i><span
+                    class="hidden md:block">Dashboard</span>
+            </a>
+            <a href="ide.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="code-2" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Real-time
+                    IDE</span>
+            </a>
+            <a href="projects.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="kanban" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Projects</span>
+            </a>
+            <a href="resume.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Resume
+                    AI</span>
+            </a>
+            <a href="interviews.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="brain" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Interview
+                    AI</span>
+            </a>
+            <a href="#" class="nav-item active justify-center md:justify-start">
+                <i data-lucide="database" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Knowledge
+                    Base</span>
+            </a>
+        </nav>
+        <div class="p-3 border-t border-white/05 hidden md:block">
+            <p class="text-[10px] text-slate-600 uppercase tracking-widest mb-3 font-semibold">Stats</p>
+            <div class="flex flex-col gap-2 text-xs">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Documents</span>
+                    <span class="font-bold badge badge-blue" id="sb-docs">0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Searches</span>
+                    <span class="font-bold text-teal-400" id="sb-searches">0</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main: 3 columns -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- LEFT: Add Document -->
+        <div class="w-72 flex-shrink-0 border-r border-slate-800 bg-slate-900 flex flex-col overflow-y-auto">
+            <div class="p-4 border-b border-slate-800">
+                <h2 class="font-bold text-sm flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-teal-400"></i> Add to Knowledge Base
+                </h2>
+            </div>
+            <div class="p-4 flex flex-col gap-3">
+                <!-- Mode tabs -->
+                <div class="flex rounded-lg bg-slate-800 p-0.5">
+                    <button id="tab-file-btn" onclick="setMode('file')"
+                        class="flex-1 text-xs py-1.5 rounded-md bg-slate-700 text-slate-200 font-medium transition">📄
+                        File</button>
+                    <button id="tab-text-btn" onclick="setMode('text')"
+                        class="flex-1 text-xs py-1.5 rounded-md text-slate-400 font-medium transition">✏️ Text</button>
+                    <button id="tab-url-btn" onclick="setMode('url')"
+                        class="flex-1 text-xs py-1.5 rounded-md text-slate-400 font-medium transition">🔗 URL</button>
+                </div>
+
+                <!-- File Mode -->
+                <div id="mode-file">
+                    <div id="drop-zone"
+                        class="drop-zone rounded-xl p-6 flex flex-col items-center gap-2 cursor-pointer text-center"
+                        onclick="document.getElementById('file-input').click()">
+                        <div id="dz-icon" class="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
+                            <i data-lucide="upload-cloud" class="w-5 h-5 text-teal-400"></i>
+                        </div>
+                        <p class="text-xs text-slate-400">Drop PDF, TXT, MD here</p>
+                        <div id="file-name"
+                            class="hidden text-[11px] bg-teal-500/10 text-teal-300 px-2 py-1 rounded-full"></div>
+                    </div>
+                    <input type="file" id="file-input" accept=".pdf,.txt,.md" class="hidden">
+                </div>
+
+                <!-- Text Mode -->
+                <div id="mode-text" class="hidden">
+                    <textarea id="raw-text" rows="6" class="auth-input w-full rounded-xl px-3 py-2 text-sm resize-none"
+                        placeholder="Paste notes, docs, code snippets…"></textarea>
+                </div>
+
+                <!-- URL Mode -->
+                <div id="mode-url" class="hidden">
+                    <input id="url-input" type="url" class="auth-input w-full rounded-xl px-3 py-2 text-sm"
+                        placeholder="https://docs.example.com/page">
+                    <p class="text-[11px] text-slate-500 mt-1.5">⚠ URL scraping requires backend internet access.</p>
+                </div>
+
+                <!-- Title -->
+                <input id="doc-title" type="text" class="auth-input w-full rounded-xl px-3 py-2 text-sm"
+                    placeholder="Document title…">
+
+                <!-- Tags -->
+                <div class="flex flex-col gap-1.5">
+                    <input id="doc-tags" type="text" class="auth-input w-full rounded-xl px-3 py-2 text-sm"
+                        placeholder="Tags: python, tutorial, system-design">
+                    <div id="tag-suggestions" class="flex flex-wrap gap-1">
+                        <span class="text-[10px] text-slate-600">Quick tags:</span>
+                        <script>
+                            ['Tutorial', 'Guide', 'API Docs', 'Design', 'Frontend', 'Backend', 'DevOps', 'AI/ML', 'Security', 'Algorithm'].forEach(t => {
+                                document.write(`<button onclick="addTag('${t}')" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-teal-400 hover:bg-teal-500/10 transition">${t}</button>`);
+                            });
+                        </script>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button id="add-btn"
+                    class="py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm transition shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2">
+                    <i data-lucide="database" class="w-4 h-4"></i> Add to Knowledge Base
+                </button>
+
+                <!-- Feedback -->
+                <div id="add-feedback" class="hidden rounded-xl px-3 py-2 text-xs"></div>
+            </div>
+        </div>
+
+        <!-- CENTER: Library + Search -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <!-- Search Bar -->
+            <header class="p-4 border-b border-slate-800 bg-slate-900/80 backdrop-blur flex gap-3 items-center">
+                <div class="flex-1 relative">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-500"></i>
+                    <input id="search-input" type="text"
+                        class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-200 outline-none placeholder-slate-500 focus:border-teal-500/50 transition"
+                        placeholder="Search your knowledge base… (BM25 full-text search)">
+                </div>
+                <button id="search-btn"
+                    class="bg-teal-600 hover:bg-teal-500 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition flex items-center gap-2 shrink-0">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i> Search
+                </button>
+                <div class="flex items-center gap-2">
+                    <button id="view-grid" onclick="setView('grid')"
+                        class="p-2 rounded-lg bg-slate-800 text-teal-400 hover:bg-slate-700 transition">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    </button>
+                    <button id="view-list" onclick="setView('list')"
+                        class="p-2 rounded-lg bg-slate-800 text-slate-500 hover:bg-slate-700 transition">
+                        <i data-lucide="list" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Tag filter bar -->
+            <div class="px-4 py-2 border-b border-slate-800 flex gap-2 overflow-x-auto">
+                <button data-tag="all" onclick="filterByTag('all')"
+                    class="tag-chip active text-[11px] px-2.5 py-0.5 rounded-full border border-teal-500/40 bg-teal-500/20 text-teal-300 font-medium shrink-0">All</button>
+                <div id="tag-filter-list" class="flex gap-1.5"></div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto p-4" id="content-area">
+
+                <!-- Empty State -->
+                <div id="empty-state" class="h-full flex flex-col items-center justify-center gap-4 text-center">
+                    <div class="w-20 h-20 rounded-3xl bg-teal-500/10 flex items-center justify-center">
+                        <i data-lucide="database" class="w-10 h-10 text-teal-400 opacity-50"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-300 mb-1">Your Knowledge Base is Empty</h3>
+                        <p class="text-sm text-slate-500 max-w-xs">Add PDFs, notes, docs, or paste content. Then search
+                            across everything with AI-powered BM25 full-text search.</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 max-w-sm">
+                        <div class="rounded-xl bg-slate-800/60 border border-slate-700/40 p-3 text-center">
+                            <div class="text-xl mb-1">📄</div>
+                            <div class="text-[11px] text-slate-500">Upload PDF docs</div>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/60 border border-slate-700/40 p-3 text-center">
+                            <div class="text-xl mb-1">✏️</div>
+                            <div class="text-[11px] text-slate-500">Paste text / notes</div>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/60 border border-slate-700/40 p-3 text-center">
+                            <div class="text-xl mb-1">🔍</div>
+                            <div class="text-[11px] text-slate-500">BM25 instant search</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doc Library (grid) -->
+                <div id="doc-grid" class="hidden flex flex-col gap-2"></div>
+                <!-- Doc Library (list) -->
+                <div id="doc-list" class="hidden flex flex-col gap-2"></div>
+
+                <!-- Search Results -->
+                <div id="search-results" class="hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-sm text-slate-300" id="search-results-header">Results</h3>
+                        <button onclick="clearSearch()"
+                            class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition">
+                            <i data-lucide="x" class="w-3 h-3"></i> Clear
+                        </button>
+                    </div>
+                    <div id="results-list" class="flex flex-col gap-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INLINE READER PANEL -->
+        <div id="inline-reader">
+            <div class="reader-topbar">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="w-8 h-8 rounded-xl bg-teal-500/10 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="book-open" class="w-4 h-4 text-teal-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h2 id="rm-title" class="text-sm font-bold text-slate-100 truncate">Document</h2>
+                        <p id="rm-meta" class="text-[11px] text-slate-500">Loading…</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <!-- Find in doc -->
+                    <div class="flex items-center gap-1.5 bg-slate-800 rounded-xl px-3 py-1.5 border border-white/05">
+                        <i data-lucide="search" class="w-3 h-3 text-slate-500"></i>
+                        <input id="rm-find" type="text" placeholder="Find in doc…"
+                            class="bg-transparent text-xs text-slate-200 outline-none w-28 placeholder-slate-600"
+                            oninput="readerFind(this.value)">
+                    </div>
+                    <!-- Font size -->
+                    <div class="font-ctrl flex items-center gap-1">
+                        <button onclick="readerFontSize(-1)" title="Smaller">A−</button>
+                        <button onclick="readerFontSize(1)" title="Larger">A+</button>
+                    </div>
+                    <!-- Close -->
+                    <button onclick="closeReader()"
+                        class="w-8 h-8 rounded-xl border border-white/08 bg-white/04 text-slate-400 hover:text-white hover:bg-white/09 transition flex items-center justify-center">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Content -->
+            <div id="rm-body" class="reader-body">
+                <p class="text-slate-600 italic text-sm">Loading document…</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div id="delete-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="glass-panel rounded-2xl p-6 w-80 flex flex-col gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center">
+                    <i data-lucide="trash-2" class="w-5 h-5 text-red-400"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm">Remove Document</h3>
+                    <p class="text-xs text-slate-400">This will remove it from the search index.</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="closeDeleteModal()"
+                    class="flex-1 py-2 rounded-xl bg-slate-800 text-slate-300 text-sm font-medium hover:bg-slate-700 transition">Cancel</button>
+                <button id="confirm-delete"
+                    class="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const token = localStorage.getItem('devverse_token');
+        if (!token) window.location.href = '../index.html';
+
+        const KB_API = 'http://localhost:5001/api/kb';
+        let docs = [], currentTag = 'all', viewMode = 'grid', searchCount = 0;
+        let pendingDeleteId = null, selectedFile = null, addMode = 'file';
+
+        // ---- MODE TABS ----
+        function setMode(m) {
+            addMode = m;
+            ['file', 'text', 'url'].forEach(x => {
+                document.getElementById(`mode-${x}`).classList.toggle('hidden', x !== m);
+                const btn = document.getElementById(`tab-${x}-btn`);
+                btn.className = x === m
+                    ? 'flex-1 text-xs py-1.5 rounded-md bg-slate-700 text-slate-200 font-medium transition'
+                    : 'flex-1 text-xs py-1.5 rounded-md text-slate-400 font-medium transition';
+            });
+        }
+
+        function addTag(t) {
+            const el = document.getElementById('doc-tags');
+            const existing = el.value.split(',').map(x => x.trim()).filter(Boolean);
+            if (!existing.includes(t)) {
+                el.value = [...existing, t].join(', ');
+            }
+        }
+
+        // ---- FILE DROP ----
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over') });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]) });
+        function handleFile(f) {
+            const ext = f.name.split('.').pop().toLowerCase();
+            if (!['pdf', 'txt', 'md'].includes(ext)) { alert('Supported: PDF, TXT, MD'); return; }
+            selectedFile = f;
+            const nm = document.getElementById('file-name');
+            nm.textContent = `📄 ${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+            nm.classList.remove('hidden');
+            document.getElementById('dz-icon').innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5 text-green-400"></i>';
+            if (!document.getElementById('doc-title').value) {
+                document.getElementById('doc-title').value = f.name.replace(/\.[^.]+$/, '');
+            }
+            lucide.createIcons();
+        }
+
+        // ---- ADD DOCUMENT ----
+        document.getElementById('add-btn').addEventListener('click', async () => {
+            const title = document.getElementById('doc-title').value.trim() || 'Untitled';
+            const tags = document.getElementById('doc-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+            const docId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
+            const btn = document.getElementById('add-btn');
+            const fb = document.getElementById('add-feedback');
+
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="w-4 h-4 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg> Indexing…';
+
+            try {
+                let res;
+                if (addMode === 'file' && selectedFile) {
+                    const fd = new FormData();
+                    fd.append('file', selectedFile);
+                    fd.append('title', title);
+                    fd.append('tags', tags.join(','));
+                    fd.append('doc_id', docId);
+                    res = await fetch(`${KB_API}/upload`, { method: 'POST', body: fd });
+                } else if (addMode === 'text') {
+                    const text = document.getElementById('raw-text').value.trim();
+                    if (!text) { showFB(false, 'Enter some text first.'); return; }
+                    res = await fetch(`${KB_API}/index`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ doc_id: docId, text, title, tags })
+                    });
+                } else if (addMode === 'url') {
+                    const url = document.getElementById('url-input').value.trim();
+                    if (!url) { showFB(false, 'Enter a URL.'); return; }
+                    res = await fetch(`${KB_API}/index`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ doc_id: docId, text: `Content from: ${url}`, title, tags })
+                    });
+                } else { showFB(false, 'Select a file or enter text.'); return; }
+
+                const data = await res.json();
+                if (res.ok) {
+                    showFB(true, `✅ "${title}" indexed — ${data.info?.chunks || '?'} chunks, ${data.info?.word_count || '?'} words`);
+                    // Reset form
+                    document.getElementById('doc-title').value = '';
+                    document.getElementById('doc-tags').value = '';
+                    document.getElementById('raw-text').value = '';
+                    document.getElementById('file-name').classList.add('hidden');
+                    selectedFile = null;
+                    loadDocs();
+                } else {
+                    showFB(false, data.error || 'Indexing failed');
+                }
+            } catch (e) {
+                showFB(false, 'Cannot reach Python service on port 5001.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="database" class="w-4 h-4"></i> Add to Knowledge Base';
+                lucide.createIcons();
+            }
+        });
+
+        function showFB(ok, msg) {
+            const fb = document.getElementById('add-feedback');
+            fb.className = `rounded-xl px-3 py-2 text-xs ${ok ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`;
+            fb.textContent = msg;
+            fb.classList.remove('hidden');
+            setTimeout(() => fb.classList.add('hidden'), 5000);
+        }
+
+        // ---- LOAD DOCS ----
+        async function loadDocs() {
+            try {
+                const res = await fetch(`${KB_API}/documents`);
+                if (!res.ok) return;
+                const data = await res.json();
+                docs = data.documents || [];
+                document.getElementById('sb-docs').textContent = docs.length;
+                renderTagFilters();
+                renderDocs();
+            } catch (e) { }
+        }
+
+        function renderTagFilters() {
+            const allTags = [...new Set(docs.flatMap(d => d.tags || []))];
+            document.getElementById('tag-filter-list').innerHTML = allTags.map(t =>
+                `<button data-tag="${t}" onclick="filterByTag('${t}')" class="tag-chip text-[11px] px-2.5 py-0.5 rounded-full border border-slate-700 bg-slate-800 text-slate-400 font-medium shrink-0">${t}</button>`
+            ).join('');
+            lucide.createIcons();
+        }
+
+        function filterByTag(tag) {
+            currentTag = tag;
+            document.querySelectorAll('.tag-chip').forEach(b => {
+                b.classList.toggle('active', b.dataset.tag === tag);
+            });
+            renderDocs();
+        }
+
+        function renderDocs() {
+            const filtered = currentTag === 'all' ? docs : docs.filter(d => (d.tags || []).includes(currentTag));
+            document.getElementById('empty-state').classList.toggle('hidden', filtered.length > 0);
+            document.getElementById('doc-grid').classList.toggle('hidden', viewMode !== 'grid' || filtered.length === 0);
+            document.getElementById('doc-list').classList.toggle('hidden', viewMode !== 'list' || filtered.length === 0);
+            document.getElementById('search-results').classList.add('hidden');
+
+            if (viewMode === 'grid') {
+                document.getElementById('doc-grid').innerHTML = filtered.map(d => `
+                <div class="doc-card glass-panel rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer" onclick="previewDoc('${d.doc_id}','${e(d.title)}')">
+
+                    <div class="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="file-text" class="w-4 h-4 text-teal-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-200 truncate">${e(d.title)}</p>
+                        <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span class="text-[11px] text-slate-500">${d.chunks} chunks</span>
+                            ${(d.tags || []).map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400">${t}</span>`).join('')}
+                        </div>
+                    </div>
+                    <button onclick="event.stopPropagation();openDeleteModal('${d.doc_id}')"
+                        class="text-slate-600 hover:text-red-400 transition flex-shrink-0">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>`).join('');
+            } else {
+                document.getElementById('doc-list').innerHTML = filtered.map(d => `
+                <div class="doc-card glass-panel rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer" onclick="previewDoc('${d.doc_id}','${e(d.title)}')">
+                    <div class="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="file-text" class="w-4 h-4 text-teal-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-slate-200 truncate">${e(d.title)}</p>
+                        <div class="flex gap-2 flex-wrap mt-0.5">
+                            ${(d.tags || []).map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400">${t}</span>`).join('')}
+                            <span class="text-[11px] text-slate-600">${d.chunks} chunks</span>
+                        </div>
+                    </div>
+                    <button onclick="event.stopPropagation();openDeleteModal('${d.doc_id}')"
+                        class="text-slate-600 hover:text-red-400 transition flex-shrink-0">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>`).join('');
+            }
+            lucide.createIcons();
+        }
+
+        function setView(v) {
+            viewMode = v;
+            document.getElementById('view-grid').className = `p-2 rounded-lg ${v === 'grid' ? 'bg-teal-500/10 text-teal-400' : 'bg-slate-800 text-slate-500'} hover:bg-slate-700 transition`;
+            document.getElementById('view-list').className = `p-2 rounded-lg ${v === 'list' ? 'bg-teal-500/10 text-teal-400' : 'bg-slate-800 text-slate-500'} hover:bg-slate-700 transition`;
+
+            renderDocs();
+        }
+
+        // ---- SEARCH ----
+        async function doSearch() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) return;
+
+            const tagFilter = currentTag !== 'all' ? [currentTag] : null;
+            document.getElementById('doc-grid').classList.add('hidden');
+            document.getElementById('doc-list').classList.add('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+            const sr = document.getElementById('search-results');
+            sr.classList.remove('hidden');
+            document.getElementById('results-list').innerHTML = '<div class="text-slate-500 text-sm text-center py-8">Searching…</div>';
+
+            try {
+                const res = await fetch(`${KB_API}/search`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, top_k: 8, tags: tagFilter })
+                });
+                const data = await res.json();
+                searchCount++;
+                document.getElementById('sb-searches').textContent = searchCount;
+                renderSearchResults(query, data.results || []);
+            } catch (e) {
+                document.getElementById('results-list').innerHTML = '<div class="text-red-400 text-sm text-center py-8">Cannot reach Python service on port 5001.</div>';
+            }
+        }
+
+        function renderSearchResults(query, results) {
+            document.getElementById('search-results-header').textContent = `${results.length} result${results.length !== 1 ? 's' : ''} for "${query}"`;
+            const el = document.getElementById('results-list');
+            if (!results.length) {
+                el.innerHTML = `<div class="text-center py-12">
+                <p class="text-slate-500 text-sm mb-2">No results found</p>
+                <p class="text-slate-600 text-xs">Try different keywords or add more documents</p>
+            </div>`;
+                return;
+            }
+            const queryWords = query.toLowerCase().split(/\s+/);
+            el.innerHTML = results.map((r, i) => {
+                const excerpt = highlightExcerpt(r.excerpt || '', queryWords);
+                const scoreWidth = Math.min(r.score * 15, 100);
+                return `<div class="result-card glass-panel rounded-xl p-4 cursor-pointer" 
+                style="animation-delay:${i * 60}ms"
+                onclick="previewDoc('${r.doc_id}','${e(r.title)}')">
+                <div class="flex items-start gap-3 mb-2">
+                    <div class="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center shrink-0">
+                        <i data-lucide="file-text" class="w-4 h-4 text-teal-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start gap-2">
+                            <h4 class="font-semibold text-sm text-slate-100 truncate">${e(r.title)}</h4>
+                            <span class="text-[10px] text-teal-400 font-mono shrink-0">BM25: ${r.score}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1 mt-0.5">
+                            ${(r.tags || []).map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400">${t}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                <div class="score-bar mb-2" style="width:${scoreWidth}%"></div>
+                <p class="text-xs text-slate-400 leading-relaxed">${excerpt}</p>
+            </div>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function highlightExcerpt(text, queryWords) {
+            let result = document.createElement('div');
+            result.textContent = text;
+            let html = result.innerHTML;
+            queryWords.forEach(w => {
+                if (w.length < 2) return;
+                const re = new RegExp(`\\b(${w})`, 'gi');
+                html = html.replace(re, '<span class="highlight">$1</span>');
+            });
+            return html;
+        }
+
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-results').classList.add('hidden');
+            renderDocs();
+        }
+
+        document.getElementById('search-btn').addEventListener('click', doSearch);
+        document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+        // ---- INLINE READER PANEL ----
+        let readerFontSz = 14;
+
+        function formatDocText(raw) {
+            // ── Step 1: Normalise line endings ──
+            let text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+            // ── Step 2: Pre-process PDF blob — insert \n before embedded markers ──
+
+            // A) Bullet character • anywhere → newline + bullet
+            text = text.replace(/\s*\u2022\s*/g, '\n\u2022 ');
+
+            // B) Numbered items with NO space: "1.Consistency" "2.Availability" "3.Partition"
+            //    Match digit(s) + dot/paren + immediately uppercase letter
+            text = text.replace(/(\d{1,2})[.)]\s*([A-Z])/g, (m, num, cap) => '\n' + num + '. ' + cap);
+
+            // C) (C) – / (A) – / (P) – style: letter in parens followed by em/en dash
+            text = text.replace(/\(([A-Za-z])\)\s*[–—\-]{1,2}\s*/g, '\n• ($1) ');
+
+            // D) Em-dash / en-dash used as bullet after a sentence end or space
+            text = text.replace(/([.!?])\s+[–—]\s*/g, '$1\n– ');
+            text = text.replace(/\s+[–—]\s+(?=[A-Z])/g, '\n– ');
+
+            // E) "Word :text" → fix stuck colon (PDF often collapses space before colon)
+            //    "Consistency :Consistency means..." → split into heading + body
+            text = text.replace(/([A-Z][a-z]{2,20})\s+:([A-Z])/g, '$1:\n$2');
+            text = text.replace(/([A-Z][a-z]{2,20}):([A-Z])/g, '$1:\n$2');
+
+            // F) "Which One Should You Choose?" or similar question headings mid-text
+            text = text.replace(/\.\s+(Which [^.!?]{5,60}\?)\s+/g, '.\n$1\n');
+            text = text.replace(/\.\s+(If you[^.!?]{5,80}\.)\s+/g, '.\n\u2022 $1\n');
+
+            // G) "Examples:" and "Use Case:" preceded by sentence content
+            text = text.replace(/([a-z.])\s+(Examples?:)\s*/g, '$1\n$2\n');
+            text = text.replace(/([a-z.])\s+(Use Case:)\s*/g, '$1\n$2\n');
+
+            // H) Clean up excessive blank lines
+            text = text.replace(/\n{3,}/g, '\n\n');
+            text = text.replace(/^\n+/, '');
+
+
+            // ── Step 3: Line-by-line parse ──
+            const lines = text.split('\n');
+            let nodes = [];
+            let i = 0;
+
+            while (i < lines.length) {
+                const trimmed = lines[i].trim();
+                i++;
+                if (!trimmed) { nodes.push({ type: 'gap' }); continue; }
+
+                // Markdown headings
+                const mdH = trimmed.match(/^(#{1,3})\s+(.+)/);
+                if (mdH) { nodes.push({ type: 'h' + mdH[1].length, content: mdH[2] }); continue; }
+
+                // ALL-CAPS heading (short line, no sentence punctuation)
+                if (/^[A-Z][A-Z0-9 \-:&/]{4,60}$/.test(trimmed) && trimmed.length <= 70 && !/[.!,;]$/.test(trimmed)) {
+                    nodes.push({ type: 'h2', content: trimmed }); continue;
+                }
+
+                // Question-style heading (Which One Should...? / Why Use...?)
+                if (/^(Which|Why|How|What|When|Where)\s.{5,60}\?$/.test(trimmed)) {
+                    nodes.push({ type: 'h2', content: trimmed }); continue;
+                }
+
+                // "Word:" or "Word :" heading (Consistency:, Availability:, Use Case:)
+                if (/^[A-Z][a-zA-Z ]{2,40}:$/.test(trimmed) && !trimmed.includes('.')) {
+                    nodes.push({ type: 'h3', content: trimmed }); continue;
+                }
+
+                // Numbered SECTION headings "1. CP ..." — render as h3 (not list)
+                if (/^\d+\.\s+[A-Z]/.test(trimmed) && trimmed.length < 80) {
+                    nodes.push({ type: 'h3', content: trimmed }); continue;
+                }
+
+                // Section divider
+                if (/^[-=]{3,}$/.test(trimmed)) { nodes.push({ type: 'hr' }); continue; }
+
+
+                // Numbered list items (collect consecutive)
+                if (/^\d+[.)\s]\s*\S/.test(trimmed) && trimmed.length > 10) {
+                    const content = trimmed.replace(/^\d+[.)\s]\s*/, '');
+                    const items = [content];
+                    while (i < lines.length) {
+                        const next = lines[i].trim();
+                        if (/^\d+[.)\s]\s*\S/.test(next) && next.length > 5) {
+                            items.push(next.replace(/^\d+[.)\s]\s*/, '')); i++;
+                        } else break;
+                    }
+                    nodes.push({ type: 'ol', items }); continue;
+                }
+
+                // Bullet items (•, -, *, –) — collect consecutive
+                if (/^[\u2022\u25E6\u2023\-\*–>]\s+/.test(trimmed)) {
+                    const content = trimmed.replace(/^[\u2022\u25E6\u2023\-\*–>]\s+/, '');
+                    const items = [content];
+                    while (i < lines.length) {
+                        const next = lines[i].trim();
+                        if (/^[\u2022\u25E6\u2023\-\*–>]\s+/.test(next)) {
+                            items.push(next.replace(/^[\u2022\u25E6\u2023\-\*–>]\s+/, '')); i++;
+                        } else break;
+                    }
+                    nodes.push({ type: 'ul', items }); continue;
+                }
+
+                // Plain paragraph
+                nodes.push({ type: 'p', content: trimmed });
+            }
+
+            // ── Step 4: Render to HTML ──
+            let html = '';
+            for (let n of nodes) {
+                if (n.type === 'gap') continue;
+                switch (n.type) {
+                    case 'h1': html += `<h1>${inlineFormat(n.content)}</h1>`; break;
+                    case 'h2': html += `<h2>${inlineFormat(n.content)}</h2>`; break;
+                    case 'h3': html += `<h3>${inlineFormat(n.content)}</h3>`; break;
+                    case 'hr': html += '<hr>'; break;
+                    case 'ul':
+                        html += '<ul>' + n.items.map(it => `<li>${inlineFormat(it)}</li>`).join('') + '</ul>';
+                        break;
+                    case 'ol':
+                        html += '<ol>' + n.items.map(it => `<li>${inlineFormat(it)}</li>`).join('') + '</ol>';
+                        break;
+                    case 'p':
+                        html += `<p>${inlineFormat(n.content)}</p>`; break;
+                }
+            }
+            return html || '<p style="color:#475569">No content available.</p>';
+        }
+
+        function inlineFormat(s) {
+            // Escape HTML first
+            let t = String(s || '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // Bold **text**
+            t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            // Italic *text*
+            t = t.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
+            // Inline code `text`
+            t = t.replace(/`([^`]+?)`/g, '<code>$1</code>');
+            return t;
+        }
+
+        async function previewDoc(docId, title) {
+            const panel = document.getElementById('inline-reader');
+            document.getElementById('rm-title').textContent = title;
+            document.getElementById('rm-meta').textContent = 'Loading…';
+            document.getElementById('rm-body').innerHTML =
+                '<p style="color:#475569;font-style:italic;text-align:center;padding:40px 0;font-size:13px">Fetching document…</p>';
+            panel.classList.add('open');
+            lucide.createIcons();
+            try {
+                const res = await fetch(`${KB_API}/document/${encodeURIComponent(docId)}`);
+                const data = await res.json();
+                if (res.ok) {
+                    const text = data.text || '';
+                    const words = text.trim().split(/\s+/).filter(Boolean).length;
+                    const readMins = Math.max(1, Math.round(words / 200));
+                    document.getElementById('rm-meta').textContent =
+                        `${words.toLocaleString()} words · ~${readMins} min read`;
+                    const body = document.getElementById('rm-body');
+                    body.innerHTML = formatDocText(text);
+                    body.style.fontSize = readerFontSz + 'px';
+                    body.scrollTop = 0;
+                } else {
+                    document.getElementById('rm-body').innerHTML =
+                        `<p style="color:#f87171">${data.error || 'Document not found'}</p>`;
+                }
+            } catch (err) {
+                document.getElementById('rm-body').innerHTML =
+                    '<p style="color:#f87171">Cannot reach Python service on port 5001.</p>';
+            }
+        }
+
+        function closeReader() {
+            document.getElementById('inline-reader').classList.remove('open');
+            document.getElementById('rm-find').value = '';
+        }
+
+        function readerFontSize(delta) {
+            readerFontSz = Math.min(20, Math.max(11, readerFontSz + delta));
+            document.getElementById('rm-body').style.fontSize = readerFontSz + 'px';
+        }
+
+        function readerFind(query) {
+            const body = document.getElementById('rm-body');
+            let html = body.innerHTML.replace(/<mark class="reader-search-hl">(.*?)<\/mark>/gi, '$1');
+            if (query.length > 1) {
+                const safe = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const re = new RegExp(`(${safe})`, 'gi');
+                html = html.replace(re, '<mark class="reader-search-hl">$1</mark>');
+            }
+            body.innerHTML = html;
+            const first = body.querySelector('.reader-search-hl');
+            if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReader(); });
+
+        // ---- DELETE ----
+        function openDeleteModal(docId) { pendingDeleteId = docId; document.getElementById('delete-modal').classList.remove('hidden'); }
+        function closeDeleteModal() { pendingDeleteId = null; document.getElementById('delete-modal').classList.add('hidden'); }
+        document.getElementById('confirm-delete').addEventListener('click', async () => {
+            if (!pendingDeleteId) return;
+            try {
+                await fetch(`${KB_API}/document/${encodeURIComponent(pendingDeleteId)}`, { method: 'DELETE' });
+                closeDeleteModal();
+                loadDocs();
+            } catch (e) { alert('Delete failed'); }
+        });
+
+        // ---- UTILS ----
+        function e(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+        // ---- INIT ----
+        loadDocs();
+        setInterval(loadDocs, 30000); // refresh every 30s
+    </script>
+</body>
+
+</html>

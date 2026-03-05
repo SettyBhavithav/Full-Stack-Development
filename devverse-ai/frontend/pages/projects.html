@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects & Tasks | DevVerse AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        .task-card {
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .task-card.sortable-ghost {
+            opacity: 0.3;
+        }
+
+        .priority-high {
+            border-left: 3px solid #ef4444;
+        }
+
+        .priority-medium {
+            border-left: 3px solid #f59e0b;
+        }
+
+        .priority-low {
+            border-left: 3px solid #10b981;
+        }
+
+        #modal-overlay {
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+
+<body class="bg-[#060b14] text-slate-50 flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-14 md:w-56 glass-nav border-r border-white/05 flex flex-col h-full flex-shrink-0">
+        <div class="p-4 flex items-center justify-center md:justify-start gap-2.5 border-b border-white/05">
+            <i data-lucide="cpu" class="text-blue-400 w-5 h-5"
+                style="filter:drop-shadow(0 0 6px rgba(59,130,246,0.6))"></i>
+            <span class="hidden md:block text-sm font-bold">Devverse<span class="gradient-text">AI</span></span>
+        </div>
+        <nav class="flex-1 p-2 md:p-3 flex flex-col gap-1">
+            <a href="dashboard.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i><span
+                    class="hidden md:block">Dashboard</span>
+            </a>
+            <a href="ide.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="code-2" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Real-time
+                    IDE</span>
+            </a>
+            <a href="#" class="nav-item active justify-center md:justify-start">
+                <i data-lucide="kanban" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Projects</span>
+            </a>
+            <a href="interviews.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="brain" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Interview
+                    AI</span>
+            </a>
+            <a href="resume.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Resume
+                    AI</span>
+            </a>
+            <a href="knowledge.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="database" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Knowledge
+                    Base</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col h-full bg-[#060b14]/50 overflow-hidden">
+
+        <!-- Header -->
+        <header
+            class="h-14 border-b border-white/05 flex items-center justify-between px-6 bg-[#060b14]/80 backdrop-blur-md flex-shrink-0">
+            <div class="flex items-center gap-4">
+                <div>
+                    <h2 class="text-base font-semibold text-slate-200">Project Board</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="project-select"
+                        class="bg-slate-800 text-sm border border-slate-700 outline-none rounded-lg p-1.5 text-slate-200 w-44 font-medium">
+                        <option value="">Loading...</option>
+                    </select>
+                    <button id="new-project-btn" title="Create Project"
+                        class="text-slate-400 hover:text-blue-400 p-1.5 rounded-lg hover:bg-slate-800 transition">
+                        <i data-lucide="folder-plus" class="w-4 h-4"></i>
+                    </button>
+                    <button id="delete-project-btn" title="Delete Project"
+                        class="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-800 transition hidden">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Stats -->
+                <div class="hidden md:flex items-center gap-4 text-xs text-slate-500">
+                    <span><span class="text-slate-300 font-bold" id="stat-todo">0</span> To Do</span>
+                    <span><span class="text-blue-400 font-bold" id="stat-inprogress">0</span> In Progress</span>
+                    <span><span class="text-green-400 font-bold" id="stat-done">0</span> Done</span>
+                </div>
+                <button id="new-task-btn" disabled
+                    class="btn-primary flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none">
+                    <i data-lucide="plus" class="w-4 h-4"></i> New Task
+                </button>
+            </div>
+        </header>
+
+        <!-- Kanban Board -->
+        <div class="flex-1 overflow-x-auto p-6 flex gap-5 perspective-1000">
+
+            <!-- Column: TO DO -->
+            <div
+                class="w-80 flex-shrink-0 flex flex-col bg-slate-800/20 rounded-2xl max-h-full border border-slate-800/60">
+                <div class="p-4 border-b border-slate-800/60 flex justify-between items-center">
+                    <h3 class="font-bold text-sm flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-slate-500"></span> To Do
+                        <span class="text-xs bg-slate-800 px-2 py-0.5 rounded-full text-slate-400 font-normal"
+                            id="badge-todo">0</span>
+                    </h3>
+                </div>
+                <div class="flex-1 p-3 overflow-y-auto flex flex-col gap-2.5 min-h-[120px]" id="col-todo"></div>
+            </div>
+
+            <!-- Column: IN PROGRESS -->
+            <div
+                class="w-80 flex-shrink-0 flex flex-col bg-blue-900/10 rounded-2xl max-h-full border border-blue-900/30">
+                <div class="p-4 border-b border-blue-900/30 flex justify-between items-center">
+                    <h3 class="font-bold text-sm flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]"></span> In
+                        Progress
+                        <span class="text-xs bg-blue-900/40 px-2 py-0.5 rounded-full text-blue-400 font-normal"
+                            id="badge-inprogress">0</span>
+                    </h3>
+                </div>
+                <div class="flex-1 p-3 overflow-y-auto flex flex-col gap-2.5 min-h-[120px]" id="col-inprogress"></div>
+            </div>
+
+            <!-- Column: DONE -->
+            <div
+                class="w-80 flex-shrink-0 flex flex-col bg-green-900/10 rounded-2xl max-h-full border border-green-900/30">
+                <div class="p-4 border-b border-green-900/30 flex justify-between items-center">
+                    <h3 class="font-bold text-sm flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
+                        Done
+                        <span class="text-xs bg-green-900/40 px-2 py-0.5 rounded-full text-green-400 font-normal"
+                            id="badge-done">0</span>
+                    </h3>
+                </div>
+                <div class="flex-1 p-3 overflow-y-auto flex flex-col gap-2.5 min-h-[120px]" id="col-done"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ======= MODALS ======= -->
+    <div id="modal-overlay"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 perspective-1000">
+
+        <!-- Create Project Modal -->
+        <div id="project-modal" class="hidden glass-panel w-full max-w-md rounded-2xl p-8 slide-up relative card-3d">
+            <button class="modal-close absolute top-4 right-4 text-slate-400 hover:text-white"><i
+                    data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2"><i data-lucide="folder-plus"
+                    class="w-5 h-5 text-blue-400"></i> Create Project</h2>
+            <form id="project-form" class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Project Name *</label>
+                    <input type="text" id="proj-name" class="auth-input rounded-lg px-4 py-2 w-full" required
+                        placeholder="My Awesome Project">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Description</label>
+                    <textarea id="proj-desc" class="auth-input rounded-lg px-4 py-2 w-full h-20 resize-none"
+                        placeholder="What is this project about?"></textarea>
+                </div>
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-500 py-2.5 rounded-xl font-bold mt-1 transition">Create
+                    Project</button>
+            </form>
+        </div>
+
+        <!-- Create/Edit Task Modal -->
+        <div id="task-modal" class="hidden glass-panel w-full max-w-md rounded-2xl p-8 slide-up relative card-3d">
+            <button class="modal-close absolute top-4 right-4 text-slate-400 hover:text-white"><i
+                    data-lucide="x"></i></button>
+            <h2 id="task-modal-title" class="text-xl font-bold mb-6 flex items-center gap-2"><i
+                    data-lucide="plus-circle" class="w-5 h-5 text-green-400"></i> New Task</h2>
+            <form id="task-form" class="flex flex-col gap-4">
+                <input type="hidden" id="task-editing-id">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Title *</label>
+                    <input type="text" id="task-title" class="auth-input rounded-lg px-4 py-2 w-full" required
+                        placeholder="Task name">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Description</label>
+                    <textarea id="task-desc" class="auth-input rounded-lg px-4 py-2 w-full h-20 resize-none"
+                        placeholder="Details..."></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Priority</label>
+                        <select id="task-priority" class="auth-input rounded-lg px-3 py-2 w-full outline-none">
+                            <option value="low">🟢 Low</option>
+                            <option value="medium" selected>🟡 Medium</option>
+                            <option value="high">🔴 High</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-slate-400">Label</label>
+                        <select id="task-label" class="auth-input rounded-lg px-3 py-2 w-full outline-none">
+                            <option value="">None</option>
+                            <option value="frontend">Frontend</option>
+                            <option value="backend">Backend</option>
+                            <option value="ai">AI Service</option>
+                            <option value="devops">DevOps</option>
+                            <option value="bug">Bug Fix</option>
+                            <option value="design">Design</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-slate-400">Deadline</label>
+                    <input type="date" id="task-deadline" class="auth-input rounded-lg px-4 py-2 w-full">
+                </div>
+                <button type="submit" id="task-submit-btn"
+                    class="bg-green-600 hover:bg-green-500 py-2.5 rounded-xl font-bold mt-1 transition">Add
+                    Task</button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const token = localStorage.getItem('devverse_token');
+        if (!token) window.location.href = '../index.html';
+
+        const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+        const colTodo = document.getElementById('col-todo');
+        const colInProgress = document.getElementById('col-inprogress');
+        const colDone = document.getElementById('col-done');
+        const projectSelect = document.getElementById('project-select');
+        const newTaskBtn = document.getElementById('new-task-btn');
+        const deleteProjectBtn = document.getElementById('delete-project-btn');
+
+        let currentProjectId = null;
+
+        // ---- LABEL CONFIG ----
+        const LABEL_CONFIG = {
+            frontend: { text: 'Frontend', cls: 'bg-purple-500/20 text-purple-400' },
+            backend: { text: 'Backend', cls: 'bg-blue-500/20 text-blue-400' },
+            ai: { text: 'AI Service', cls: 'bg-green-500/20 text-green-400' },
+            devops: { text: 'DevOps', cls: 'bg-orange-500/20 text-orange-400' },
+            bug: { text: '🐛 Bug', cls: 'bg-red-500/20 text-red-400' },
+            design: { text: 'Design', cls: 'bg-pink-500/20 text-pink-400' },
+        };
+
+        // ---- PROJECTS ----
+        async function loadProjects() {
+            try {
+                const res = await fetch('http://localhost:5000/api/projects', { headers });
+                const projects = await res.json();
+                projectSelect.innerHTML = projects.length === 0
+                    ? '<option value="">No projects. Create one!</option>'
+                    : '';
+                projects.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id; opt.textContent = p.name;
+                    projectSelect.appendChild(opt);
+                });
+                if (projects.length > 0) {
+                    currentProjectId = projects[0].id;
+                    projectSelect.value = currentProjectId;
+                    newTaskBtn.disabled = false;
+                    deleteProjectBtn.classList.remove('hidden');
+                    loadTasks(currentProjectId);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        projectSelect.addEventListener('change', (e) => {
+            currentProjectId = e.target.value;
+            if (currentProjectId) { loadTasks(currentProjectId); deleteProjectBtn.classList.remove('hidden'); }
+        });
+
+        deleteProjectBtn.addEventListener('click', async () => {
+            if (!currentProjectId || !confirm('Delete this project and all its tasks?')) return;
+            await fetch(`http://localhost:5000/api/projects/${currentProjectId}`, { method: 'DELETE', headers });
+            currentProjectId = null;
+            newTaskBtn.disabled = true;
+            deleteProjectBtn.classList.add('hidden');
+            colTodo.innerHTML = ''; colInProgress.innerHTML = ''; colDone.innerHTML = '';
+            updateBadges();
+            loadProjects();
+        });
+
+        // ---- TASKS ----
+        async function loadTasks(projectId) {
+            colTodo.innerHTML = ''; colInProgress.innerHTML = ''; colDone.innerHTML = '';
+            try {
+                const res = await fetch(`http://localhost:5000/api/tasks/${projectId}`, { headers });
+                const tasks = await res.json();
+                tasks.forEach(task => {
+                    const el = createTaskCard(task);
+                    if (task.status === 'in_progress') colInProgress.appendChild(el);
+                    else if (task.status === 'done') colDone.appendChild(el);
+                    else colTodo.appendChild(el);
+                });
+                updateBadges();
+                lucide.createIcons();
+            } catch (e) { console.error(e); }
+        }
+
+        function createTaskCard(task) {
+            const div = document.createElement('div');
+            const pCls = `priority-${task.priority || 'medium'}`;
+            div.className = `task-card glass-panel p-4 rounded-xl cursor-grab active:cursor-grabbing border border-slate-700/50 hover:border-slate-600 ${pCls}`;
+            div.dataset.id = task.id;
+
+            const labelConf = task.label ? LABEL_CONFIG[task.label] : null;
+            const labelHtml = labelConf
+                ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${labelConf.cls}">${labelConf.text}</span>`
+                : '';
+
+            const priorityBadge = {
+                high: '<span class="text-[10px] text-red-400 font-bold flex items-center gap-1">🔴 High</span>',
+                medium: '<span class="text-[10px] text-yellow-400 font-bold flex items-center gap-1">🟡 Med</span>',
+                low: '<span class="text-[10px] text-green-400 font-bold flex items-center gap-1">🟢 Low</span>',
+            }[task.priority || 'medium'] || '';
+
+            let deadlineHtml = '';
+            if (task.deadline) {
+                const d = new Date(task.deadline);
+                const now = new Date();
+                const isOverdue = d < now && task.status !== 'done';
+                const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                deadlineHtml = `<span class="text-[10px] flex items-center gap-1 ${isOverdue ? 'text-red-400' : 'text-slate-500'}">
+                    <i data-lucide="calendar" class="w-3 h-3"></i>${dateStr}${isOverdue ? ' ⚠' : ''}
+                </span>`;
+            }
+
+            div.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    ${labelHtml}
+                    <div class="flex gap-1 ml-auto opacity-0 group-hover:opacity-100 card-actions">
+                        <button class="edit-task-btn text-slate-500 hover:text-blue-400 p-0.5 transition" data-task='${JSON.stringify(task)}'>
+                            <i data-lucide="pencil" class="w-3 h-3"></i>
+                        </button>
+                        <button class="delete-task-btn text-slate-500 hover:text-red-400 p-0.5 transition" data-id="${task.id}">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </div>
+                <h4 class="font-semibold text-slate-200 text-sm mb-1 leading-snug">${task.title}</h4>
+                ${task.description ? `<p class="text-xs text-slate-500 mb-3 line-clamp-2">${task.description}</p>` : ''}
+                <div class="flex items-center justify-between mt-3">
+                    ${priorityBadge}
+                    ${deadlineHtml}
+                </div>
+            `;
+
+            // Always show action buttons on hover via JS
+            div.addEventListener('mouseenter', () => div.querySelector('.card-actions')?.classList.add('!opacity-100'));
+            div.addEventListener('mouseleave', () => div.querySelector('.card-actions')?.classList.remove('!opacity-100'));
+
+            div.querySelector('.edit-task-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const task = JSON.parse(e.currentTarget.dataset.task);
+                openEditTaskModal(task);
+            });
+            div.querySelector('.delete-task-btn').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const taskId = e.currentTarget.dataset.id;
+                if (!confirm('Delete this task?')) return;
+                await fetch(`http://localhost:5000/api/tasks/${taskId}`, { method: 'DELETE', headers });
+                div.remove();
+                updateBadges();
+            });
+
+            return div;
+        }
+
+        function updateBadges() {
+            const todo = colTodo.children.length;
+            const inp = colInProgress.children.length;
+            const done = colDone.children.length;
+            document.getElementById('badge-todo').textContent = todo;
+            document.getElementById('badge-inprogress').textContent = inp;
+            document.getElementById('badge-done').textContent = done;
+            document.getElementById('stat-todo').textContent = todo;
+            document.getElementById('stat-inprogress').textContent = inp;
+            document.getElementById('stat-done').textContent = done;
+        }
+
+        // ---- SORTABLE ----
+        const sharedOptions = {
+            group: 'tasks', animation: 180, ghostClass: 'sortable-ghost',
+            onEnd: async (evt) => {
+                const taskId = evt.item.dataset.id;
+                let newStatus = 'todo';
+                if (evt.to.id === 'col-inprogress') newStatus = 'in_progress';
+                else if (evt.to.id === 'col-done') newStatus = 'done';
+                if (evt.from !== evt.to) {
+                    await fetch(`http://localhost:5000/api/tasks/${taskId}/status`, { method: 'PUT', headers, body: JSON.stringify({ status: newStatus }) });
+                }
+                updateBadges();
+            }
+        };
+        new Sortable(colTodo, sharedOptions);
+        new Sortable(colInProgress, sharedOptions);
+        new Sortable(colDone, sharedOptions);
+
+        // ---- MODAL SYSTEM ----
+        const overlay = document.getElementById('modal-overlay');
+        const projectModal = document.getElementById('project-modal');
+        const taskModal = document.getElementById('task-modal');
+
+        function openModal(el) {
+            overlay.classList.remove('hidden');
+            el.classList.remove('hidden');
+            lucide.createIcons();
+        }
+        function closeAllModals() {
+            overlay.classList.add('hidden');
+            projectModal.classList.add('hidden');
+            taskModal.classList.add('hidden');
+        }
+
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeAllModals(); });
+        document.querySelectorAll('.modal-close').forEach(btn => btn.addEventListener('click', closeAllModals));
+
+        // ---- CREATE PROJECT ----
+        document.getElementById('new-project-btn').addEventListener('click', () => openModal(projectModal));
+        document.getElementById('project-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('proj-name').value.trim();
+            const desc = document.getElementById('proj-desc').value.trim();
+            const res = await fetch('http://localhost:5000/api/projects', { method: 'POST', headers, body: JSON.stringify({ name, description: desc }) });
+            if (res.ok) { closeAllModals(); document.getElementById('project-form').reset(); loadProjects(); }
+        });
+
+        // ---- CREATE / EDIT TASK ----
+        newTaskBtn.addEventListener('click', () => {
+            if (!currentProjectId) return;
+            document.getElementById('task-editing-id').value = '';
+            document.getElementById('task-form').reset();
+            document.getElementById('task-modal-title').innerHTML = '<i data-lucide="plus-circle" class="w-5 h-5 text-green-400"></i> New Task';
+            document.getElementById('task-submit-btn').textContent = 'Add Task';
+            document.getElementById('task-submit-btn').className = 'bg-green-600 hover:bg-green-500 py-2.5 rounded-xl font-bold mt-1 transition';
+            openModal(taskModal);
+        });
+
+        function openEditTaskModal(task) {
+            document.getElementById('task-editing-id').value = task.id;
+            document.getElementById('task-title').value = task.title;
+            document.getElementById('task-desc').value = task.description || '';
+            document.getElementById('task-priority').value = task.priority || 'medium';
+            document.getElementById('task-label').value = task.label || '';
+            document.getElementById('task-deadline').value = task.deadline ? task.deadline.split('T')[0] : '';
+            document.getElementById('task-modal-title').innerHTML = '<i data-lucide="pencil" class="w-5 h-5 text-blue-400"></i> Edit Task';
+            document.getElementById('task-submit-btn').textContent = 'Save Changes';
+            document.getElementById('task-submit-btn').className = 'bg-blue-600 hover:bg-blue-500 py-2.5 rounded-xl font-bold mt-1 transition';
+            openModal(taskModal);
+        }
+
+        document.getElementById('task-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editingId = document.getElementById('task-editing-id').value;
+            const title = document.getElementById('task-title').value.trim();
+            const description = document.getElementById('task-desc').value.trim();
+            const priority = document.getElementById('task-priority').value;
+            const label = document.getElementById('task-label').value;
+            const deadline = document.getElementById('task-deadline').value || null;
+
+            if (editingId) {
+                // Edit
+                await fetch(`http://localhost:5000/api/tasks/${editingId}`, {
+                    method: 'PUT', headers, body: JSON.stringify({ title, description, priority, label, deadline })
+                });
+            } else {
+                // Create
+                await fetch('http://localhost:5000/api/tasks', {
+                    method: 'POST', headers, body: JSON.stringify({ project_id: currentProjectId, title, description, priority, label, deadline })
+                });
+            }
+            closeAllModals();
+            loadTasks(currentProjectId);
+        });
+
+        // ---- INIT ----
+        loadProjects();
+    </script>
+</body>
+
+</html>

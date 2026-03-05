@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time IDE | DevVerse AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+    <style>
+        #terminal-output,
+        #chat-messages {
+            scrollbar-width: thin;
+        }
+
+        .user-pill {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .chat-msg {
+            animation: slideUp 0.2s ease-out;
+        }
+
+        #room-join-screen {
+            background: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.18) 0%, rgba(59, 130, 246, 0.08) 40%, transparent 70%);
+        }
+
+        .chat-bubble-own {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.15));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .chat-bubble {
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        #terminal-output .t-success {
+            color: #34d399;
+        }
+
+        #terminal-output .t-error {
+            color: #f87171;
+        }
+
+        #terminal-output .t-info {
+            color: #60a5fa;
+        }
+
+        #terminal-output .t-dim {
+            color: #475569;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-900 text-slate-50 flex h-screen overflow-hidden">
+
+    <!-- ROOM JOIN SCREEN (shown first) -->
+    <div id="room-join-screen"
+        class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-[#060b14]/95">
+        <div class="orb-bg"></div>
+        <div class="grid-overlay"></div>
+        <div class="glass-panel-bright rounded-2xl p-10 w-full max-w-md slide-up relative z-10 border border-white/08">
+            <div class="flex items-center gap-3 mb-2">
+                <i data-lucide="cpu" class="text-blue-400 w-7 h-7"
+                    style="filter:drop-shadow(0 0 8px rgba(59,130,246,0.6))"></i>
+                <span class="text-xl font-bold">Devverse<span class="gradient-text">IDE</span></span>
+            </div>
+            <p class="text-slate-500 mb-8 text-sm mt-1">Create a collaborative room or join one with a Room ID.</p>
+
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-medium text-slate-400">Display Name</label>
+                    <input id="user-name-input" class="auth-input rounded-xl px-4 py-2.5 w-full text-sm"
+                        placeholder="e.g. AlphaDevX" />
+                </div>
+
+                <button id="create-room-btn"
+                    class="btn-primary w-full py-3 rounded-xl text-sm pulse-ring flex items-center justify-center gap-2 mt-1">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Create New Room
+                </button>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 h-px bg-white/06"></div>
+                    <span class="text-xs text-slate-600">or join existing</span>
+                    <div class="flex-1 h-px bg-white/06"></div>
+                </div>
+
+                <div class="flex gap-2">
+                    <input id="room-id-input" class="auth-input rounded-xl px-3 py-2.5 flex-1 text-sm"
+                        placeholder="Enter Room ID..." />
+                    <button id="join-room-btn"
+                        class="bg-indigo-600/80 hover:bg-indigo-500 border border-indigo-500/30 transition px-4 rounded-xl font-bold flex items-center gap-1.5 text-sm">
+                        <i data-lucide="log-in" class="w-4 h-4"></i> Join
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN IDE LAYOUT -->
+    <!-- Sidebar -->
+    <aside
+        class="w-14 md:w-56 glass-nav border-r border-white/05 flex flex-col h-full transition-all z-10 flex-shrink-0">
+        <div class="p-4 flex items-center justify-center md:justify-start gap-2.5 border-b border-white/05">
+            <i data-lucide="cpu" class="text-blue-400 w-5 h-5"
+                style="filter:drop-shadow(0 0 6px rgba(59,130,246,0.6))"></i>
+            <span class="hidden md:block text-sm font-bold">Devverse<span class="gradient-text">AI</span></span>
+        </div>
+        <nav class="flex-1 p-2 md:p-3 flex flex-col gap-1">
+            <a href="dashboard.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i><span
+                    class="hidden md:block">Dashboard</span>
+            </a>
+            <a href="#" class="nav-item active justify-center md:justify-start">
+                <i data-lucide="code-2" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Real-time
+                    IDE</span>
+            </a>
+            <a href="projects.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="kanban" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Projects</span>
+            </a>
+            <a href="interviews.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="brain" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Interview
+                    AI</span>
+            </a>
+            <a href="resume.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Resume
+                    AI</span>
+            </a>
+            <a href="knowledge.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="database" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Knowledge
+                    Base</span>
+            </a>
+        </nav>
+
+        <!-- Active Users panel -->
+        <div class="p-3 border-t border-white/05">
+            <p class="text-[10px] text-slate-600 uppercase tracking-widest mb-2 hidden md:block font-semibold">In This
+                Room</p>
+            <div id="user-list" class="flex flex-col gap-2"></div>
+        </div>
+    </aside>
+
+    <!-- MAIN EDITOR AREA -->
+    <main class="flex-1 flex flex-col h-full bg-[#1e1e1e] overflow-hidden">
+
+        <!-- Top Nav Bar -->
+        <header
+            class="h-12 border-b border-[#3c3c3c] flex items-center justify-between px-4 bg-[#252526] flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <i data-lucide="file-code-2" class="w-4 h-4 text-yellow-400"></i>
+                <span class="text-sm font-mono text-slate-300" id="file-name">main.js</span>
+                <!-- Room ID badge -->
+                <div
+                    class="hidden md:flex items-center gap-1.5 ml-3 bg-slate-800 border border-slate-700 rounded px-2 py-0.5">
+                    <span class="text-[10px] text-slate-400">Room:</span>
+                    <span class="text-[10px] font-mono text-blue-400 font-bold" id="room-badge">—</span>
+                    <button id="copy-room-btn" title="Copy Room ID" class="text-slate-500 hover:text-slate-200 ml-1">
+                        <i data-lucide="copy" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Language Selector -->
+                <select id="language-select"
+                    class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded px-2 py-1 outline-none">
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                </select>
+
+                <!-- Avatar stack -->
+                <div class="flex -space-x-2" id="avatar-stack">
+                    <div class="w-6 h-6 rounded-full bg-blue-500 border-2 border-[#252526] flex items-center justify-center text-[9px] font-bold"
+                        title="You">Y</div>
+                </div>
+
+                <!-- Chat toggle -->
+                <button id="chat-toggle-btn" class="text-slate-400 hover:text-blue-400 transition relative"
+                    title="Toggle Chat">
+                    <i data-lucide="message-square" class="w-4 h-4"></i>
+                    <span id="chat-badge"
+                        class="hidden absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-[8px] flex items-center justify-center text-white">!</span>
+                </button>
+
+                <!-- Run button -->
+                <button id="run-btn"
+                    class="bg-green-600 hover:bg-green-500 text-white text-xs px-3 py-1.5 rounded flex items-center gap-1.5 transition font-bold shadow-lg shadow-green-500/20">
+                    <i data-lucide="play" class="w-3 h-3"></i> Run
+                </button>
+            </div>
+        </header>
+
+        <!-- Editor + Terminal -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Monaco Editor -->
+            <div id="editor-container" class="flex-1 w-full"></div>
+
+            <!-- Terminal Panel -->
+            <div id="terminal-panel" class="h-44 border-t border-slate-700/60 bg-[#0d0d0d] flex flex-col flex-shrink-0">
+                <div class="flex justify-between items-center px-3 py-1.5 border-b border-slate-800">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-3 h-3 text-slate-500"></i>
+                        <span class="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Output</span>
+                    </div>
+                    <button id="clear-terminal"
+                        class="text-slate-600 hover:text-slate-300 text-[10px] font-mono transition">Clear</button>
+                </div>
+                <div class="flex-1 overflow-y-auto font-mono text-xs text-slate-300 p-3 leading-relaxed"
+                    id="terminal-output">
+                    <span class="text-slate-500">$ Waiting for input...</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- CHAT SIDEBAR -->
+    <aside id="chat-sidebar"
+        class="hidden w-72 border-l border-white/05 bg-[#0a0f1a] flex flex-col h-full flex-shrink-0">
+        <div class="p-4 border-b border-white/05 flex items-center justify-between bg-[#0d1626]">
+            <div class="flex items-center gap-2">
+                <i data-lucide="message-square" class="w-4 h-4 text-blue-400"></i>
+                <span class="text-sm font-semibold">Room Chat</span>
+            </div>
+            <button id="close-chat-btn" class="text-slate-600 hover:text-slate-200 transition p-1 rounded">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3"></div>
+        <div class="p-3 border-t border-white/05 flex gap-2">
+            <input id="chat-input" placeholder="Type a message..."
+                class="auth-input flex-1 rounded-xl px-3 py-2 text-sm" />
+            <button id="send-chat-btn" class="btn-primary px-3 py-2 rounded-xl flex items-center justify-center">
+                <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </aside>
+
+    <script>
+        lucide.createIcons();
+
+        // --- Auth guard ---
+        const token = localStorage.getItem('devverse_token');
+        const userStr = localStorage.getItem('devverse_user');
+        const currentUser = userStr ? JSON.parse(userStr) : null;
+        const defaultName = currentUser?.username || currentUser?.email?.split('@')[0] || 'Dev';
+
+        if (document.getElementById('user-name-input')) {
+            document.getElementById('user-name-input').value = defaultName;
+        }
+
+        let socket = null;
+        let currentRoomId = null;
+        let myName = defaultName;
+        let unreadChats = 0;
+        let chatOpen = false;
+
+        // ---- Room Join/Create ----
+        function generateRoomId() {
+            return 'room-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function enterRoom(roomId, displayName) {
+            myName = displayName || defaultName;
+            currentRoomId = roomId;
+
+            // Hide join screen
+            document.getElementById('room-join-screen').style.display = 'none';
+            document.getElementById('room-badge').textContent = roomId;
+
+            // Connect socket
+            socket = io('http://localhost:5000');
+            socket.on('connect', () => {
+                socket.emit('join_room', { roomId, userName: myName });
+                termLog(`<span class="text-green-400">✓ Connected to room: ${roomId}</span>`);
+                termLog(`<span class="text-slate-500">Share this Room ID with teammates to collaborate in real-time.</span>`);
+            });
+
+            socket.on('room_state', ({ code, language, users }) => {
+                // Set existing room code
+                if (window.editor) {
+                    window.isRemoteChange = true;
+                    window.editor.setValue(code);
+                    window.isRemoteChange = false;
+                    // Set language
+                    const langSelect = document.getElementById('language-select');
+                    langSelect.value = language;
+                    updateFileExt(language);
+                    monaco.editor.setModelLanguage(window.editor.getModel(), language);
+                }
+                renderUserList(users);
+                renderAvatarStack(users);
+            });
+
+            socket.on('user_joined', ({ id, name, color }) => {
+                termLog(`<span style="color:${color}">→ ${name} joined the room</span>`);
+                appendChatSystem(`${name} joined`);
+            });
+
+            socket.on('user_left', ({ id, name }) => {
+                termLog(`<span class="text-slate-500">← ${name || 'A user'} left the room</span>`);
+                appendChatSystem(`${name || 'A user'} left`);
+            });
+
+            socket.on('user_list', (users) => {
+                renderUserList(users);
+                renderAvatarStack(users);
+            });
+
+            socket.on('code_update', (code) => {
+                if (window.editor && window.editor.getValue() !== code) {
+                    window.isRemoteChange = true;
+                    const pos = window.editor.getPosition();
+                    window.editor.setValue(code);
+                    window.editor.setPosition(pos);
+                    window.isRemoteChange = false;
+                }
+            });
+
+            socket.on('language_update', (lang) => {
+                const langSelect = document.getElementById('language-select');
+                langSelect.value = lang;
+                updateFileExt(lang);
+                if (window.editor) {
+                    monaco.editor.setModelLanguage(window.editor.getModel(), lang);
+                }
+            });
+
+            socket.on('chat_message', (msg) => {
+                appendChatMessage(msg);
+                if (!chatOpen) {
+                    unreadChats++;
+                    const badge = document.getElementById('chat-badge');
+                    badge.textContent = unreadChats;
+                    badge.classList.remove('hidden');
+                }
+            });
+
+            socket.on('disconnect', () => {
+                termLog(`<span class="text-red-400">✗ Disconnected from server.</span>`);
+            });
+
+            initMonaco();
+        }
+
+        document.getElementById('create-room-btn').addEventListener('click', () => {
+            const name = document.getElementById('user-name-input').value.trim() || defaultName;
+            const rid = generateRoomId();
+            enterRoom(rid, name);
+        });
+
+        document.getElementById('join-room-btn').addEventListener('click', () => {
+            const name = document.getElementById('user-name-input').value.trim() || defaultName;
+            const rid = document.getElementById('room-id-input').value.trim();
+            if (!rid) { alert('Please enter a Room ID.'); return; }
+            enterRoom(rid, name);
+        });
+
+        document.getElementById('room-id-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('join-room-btn').click();
+        });
+
+        // ---- Copy Room ID ----
+        document.getElementById('copy-room-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentRoomId || '');
+            const btn = document.getElementById('copy-room-btn');
+            btn.innerHTML = '<i data-lucide="check" class="w-3 h-3 text-green-400"></i>';
+            lucide.createIcons();
+            setTimeout(() => { btn.innerHTML = '<i data-lucide="copy" class="w-3 h-3"></i>'; lucide.createIcons(); }, 1500);
+        });
+
+        // ---- User list rendering ----
+        function renderUserList(users) {
+            const ul = document.getElementById('user-list');
+            ul.innerHTML = users.map(u => `
+                <div class="user-pill flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-white" style="background:${u.color}">
+                        ${u.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span class="text-xs text-slate-300 hidden md:block truncate max-w-[100px]">${u.name}</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400 ml-auto"></span>
+                </div>
+            `).join('');
+        }
+
+        function renderAvatarStack(users) {
+            const stack = document.getElementById('avatar-stack');
+            stack.innerHTML = users.slice(0, 5).map(u => `
+                <div class="w-6 h-6 rounded-full border-2 border-[#252526] flex items-center justify-center text-[9px] font-bold text-white" style="background:${u.color}" title="${u.name}">
+                    ${u.name.charAt(0).toUpperCase()}
+                </div>
+            `).join('');
+        }
+
+        // ---- Terminal helpers ----
+        function termLog(html) {
+            const t = document.getElementById('terminal-output');
+            t.innerHTML += `<div>${html}</div>`;
+            t.scrollTop = t.scrollHeight;
+        }
+
+        document.getElementById('clear-terminal').addEventListener('click', () => {
+            document.getElementById('terminal-output').innerHTML = '<span class="text-slate-500">$ Cleared.</span>';
+        });
+
+        // ---- Chat ----
+        document.getElementById('chat-toggle-btn').addEventListener('click', () => {
+            chatOpen = !chatOpen;
+            const sidebar = document.getElementById('chat-sidebar');
+            chatOpen ? sidebar.classList.remove('hidden') : sidebar.classList.add('hidden');
+            if (chatOpen) {
+                unreadChats = 0;
+                document.getElementById('chat-badge').classList.add('hidden');
+            }
+        });
+        document.getElementById('close-chat-btn').addEventListener('click', () => {
+            chatOpen = false;
+            document.getElementById('chat-sidebar').classList.add('hidden');
+        });
+
+        function appendChatMessage(msg) {
+            const el = document.createElement('div');
+            el.className = 'chat-msg flex flex-col gap-0.5';
+            el.innerHTML = `
+                <div class="flex items-baseline gap-2">
+                    <span class="text-xs font-bold" style="color:${msg.color}">${msg.sender}</span>
+                    <span class="text-[10px] text-slate-600">${msg.time}</span>
+                </div>
+                <p class="text-sm text-slate-300 bg-slate-800 rounded-lg px-3 py-2 w-fit max-w-[220px] break-words">${msg.message}</p>
+            `;
+            document.getElementById('chat-messages').appendChild(el);
+            document.getElementById('chat-messages').scrollTop = 99999;
+        }
+
+        function appendChatSystem(text) {
+            const el = document.createElement('div');
+            el.className = 'text-center text-[10px] text-slate-600 italic';
+            el.textContent = text;
+            document.getElementById('chat-messages').appendChild(el);
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg || !socket || !currentRoomId) return;
+            socket.emit('chat_message', { roomId: currentRoomId, message: msg });
+            input.value = '';
+        }
+
+        document.getElementById('send-chat-btn').addEventListener('click', sendChatMessage);
+        document.getElementById('chat-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+
+        // ---- Language helpers ----
+        function updateFileExt(lang) {
+            const extMap = { javascript: 'js', python: 'py', html: 'html', css: 'css', typescript: 'ts', java: 'java', cpp: 'cpp' };
+            document.getElementById('file-name').textContent = `main.${extMap[lang] || lang}`;
+        }
+
+        // ---- Monaco ----
+        function initMonaco() {
+            require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' } });
+            require(['vs/editor/editor.main'], function () {
+                window.editor = monaco.editor.create(document.getElementById('editor-container'), {
+                    value: '// Welcome to DevVerse AI Real-time IDE!\n// Start typing — changes sync to everyone in this room.\n\nfunction greet(name) {\n\tconsole.log(`Hello, ${name}!`);\n}\n\ngreet("World");',
+                    language: 'javascript',
+                    theme: 'vs-dark',
+                    automaticLayout: true,
+                    minimap: { enabled: true },
+                    fontSize: 14,
+                    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                    fontLigatures: true,
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    smoothScrolling: true,
+                    cursorBlinking: 'phase',
+                    wordWrap: 'on',
+                    tabSize: 4
+                });
+
+                let emitTimeout;
+                window.editor.onDidChangeModelContent(() => {
+                    if (window.isRemoteChange || !socket) return;
+                    clearTimeout(emitTimeout);
+                    emitTimeout = setTimeout(() => {
+                        socket.emit('code_change', { roomId: currentRoomId, code: window.editor.getValue() });
+                    }, 250);
+                });
+
+                // Language selector
+                document.getElementById('language-select').addEventListener('change', (e) => {
+                    const lang = e.target.value;
+                    updateFileExt(lang);
+                    monaco.editor.setModelLanguage(window.editor.getModel(), lang);
+                    if (socket && currentRoomId) {
+                        socket.emit('language_change', { roomId: currentRoomId, language: lang });
+                    }
+                });
+
+                // Run button
+                document.getElementById('run-btn').addEventListener('click', async () => {
+                    const lang = document.getElementById('language-select').value;
+                    const code = window.editor.getValue();
+                    termLog(`<span class="text-slate-400">——————————————————</span>`);
+                    termLog(`<span class="text-green-400">▶ Running ${lang}...</span>`);
+
+                    if (lang === 'javascript') {
+                        setTimeout(() => {
+                            try {
+                                let output = [];
+                                const oldLog = console.log;
+                                const oldErr = console.error;
+                                console.log = (...a) => output.push({ type: 'log', text: a.join(' ') });
+                                console.error = (...a) => output.push({ type: 'err', text: a.join(' ') });
+                                eval(code);
+                                console.log = oldLog;
+                                console.error = oldErr;
+                                if (output.length === 0) {
+                                    termLog('<span class="text-slate-500">(no output)</span>');
+                                } else {
+                                    output.forEach(o => {
+                                        const cls = o.type === 'err' ? 'text-red-400' : 'text-slate-200';
+                                        termLog(`<span class="${cls}">${o.text}</span>`);
+                                    });
+                                }
+                            } catch (e) {
+                                termLog(`<span class="text-red-400">Error: ${e.message}</span>`);
+                            }
+                        }, 10);
+                    } else if (lang === 'python') {
+                        try {
+                            const res = await fetch('http://localhost:5001/api/execute/python', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ code })
+                            });
+                            const result = await res.json();
+                            if (result.status === 'success') {
+                                (result.output || '(no output)').split('\n').forEach(line => {
+                                    if (line.trim()) termLog(`<span class="text-slate-200">${line}</span>`);
+                                });
+                            } else {
+                                termLog(`<span class="text-red-400">${(result.output || result.error || 'Error').replace(/\n/g, '<br>')}</span>`);
+                            }
+                        } catch (e) {
+                            termLog(`<span class="text-red-500">× Python service unreachable: ${e.message}</span>`);
+                        }
+                    } else {
+                        termLog(`<span class="text-yellow-400">ℹ ${lang} execution not supported in browser. Use JavaScript or Python.</span>`);
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>

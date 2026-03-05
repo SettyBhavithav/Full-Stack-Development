@@ -1,0 +1,162 @@
+<html>
+<head>
+    <hta:application
+        id="DevVerseAI"
+        applicationname="DevVerse AI"
+        border="thin"
+        borderstyle="normal"
+        caption="yes"
+        contextmenu="no"
+        innerborder="no"
+        maximizebutton="no"
+        minimizebutton="yes"
+        navigable="yes"
+        scroll="no"
+        scrollflate="no"
+        selection="no"
+        showintaskbar="yes"
+        singleinstance="yes"
+        sysmenu="yes"
+        version="1.0"
+        windowstate="normal"
+    />
+    <title>DevVerse AI — Launcher</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #060b14;
+            color: #f0f6ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .logo { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+        .logo span { color: #60a5fa; }
+        .subtitle { color: #64748b; font-size: 13px; margin-bottom: 40px; }
+        .steps { display: flex; flex-direction: column; gap: 12px; width: 320px; }
+        .step {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 13px; color: #94a3b8;
+            transition: all 0.3s;
+        }
+        .step.active { border-color: rgba(59,130,246,0.4); color: #f0f6ff; background: rgba(59,130,246,0.08); }
+        .step.done   { border-color: rgba(16,185,129,0.4); color: #34d399; background: rgba(16,185,129,0.06); }
+        .dot {
+            width: 28px; height: 28px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.06);
+            font-size: 14px; flex-shrink: 0;
+        }
+        .step.active .dot { background: rgba(59,130,246,0.3); }
+        .step.done   .dot { background: rgba(16,185,129,0.3); }
+        .bar-wrap { width: 320px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 99px; margin-top: 32px; overflow: hidden; }
+        .bar { height: 100%; width: 0%; background: linear-gradient(90deg,#3b82f6,#6366f1); border-radius: 99px; transition: width 0.6s ease; }
+        .open-btn {
+            margin-top: 28px;
+            display: none; gap: 8px; align-items: center; justify-content: center;
+            background: linear-gradient(135deg,#3b82f6,#6366f1);
+            color: #fff; font-weight: 700; padding: 12px 28px;
+            border-radius: 12px; border: none; cursor: pointer;
+            font-size: 14px; box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+        }
+        .open-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="logo">Devverse<span>AI</span></div>
+    <div class="subtitle">Starting all services, please wait…</div>
+
+    <div class="steps">
+        <div class="step" id="s1"><div class="dot">🐳</div><span>Starting MySQL + Redis (Docker)</span></div>
+        <div class="step" id="s2"><div class="dot">⚙️</div><span>Starting Node.js Backend</span></div>
+        <div class="step" id="s3"><div class="dot">🔄</div><span>Starting Background Worker</span></div>
+        <div class="step" id="s4"><div class="dot">🤖</div><span>Starting Python AI Service</span></div>
+        <div class="step" id="s5"><div class="dot">🌐</div><span>Starting Frontend Server</span></div>
+    </div>
+
+    <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+    <button class="open-btn" id="openBtn" onclick="openApp()">Open DevVerse AI →</button>
+
+    <script language="VBScript">
+        Dim sh, root
+
+        Sub StartAll()
+            Set sh = CreateObject("WScript.Shell")
+            root = Left(document.location, InStrRev(document.location, "/"))
+            root = Replace(root, "file:///", "")
+            root = Replace(root, "/", "\")
+
+            ' Step 1 - Docker
+            SetStep "s1", "active"
+            SetBar 10
+            sh.Run "cmd /c cd /d """ & root & "docker"" && docker compose up -d", 0, True
+            SetStep "s1", "done"
+            SetBar 25
+
+            ' Step 2 - Node backend
+            SetStep "s2", "active"
+            sh.Run "cmd /c start /min powershell -WindowStyle Minimized -ExecutionPolicy Bypass -Command ""Set-Location '" & root & "backend'; node server.js""", 0, False
+            Wait 3000
+            SetStep "s2", "done"
+            SetBar 45
+
+            ' Step 3 - Worker
+            SetStep "s3", "active"
+            sh.Run "cmd /c start /min powershell -WindowStyle Minimized -ExecutionPolicy Bypass -Command ""Set-Location '" & root & "workers'; node queue_worker.js""", 0, False
+            Wait 1000
+            SetStep "s3", "done"
+            SetBar 60
+
+            ' Step 4 - Python AI
+            SetStep "s4", "active"
+            sh.Run "cmd /c start /min powershell -WindowStyle Minimized -ExecutionPolicy Bypass -Command ""Set-Location '" & root & "python-services'; .\venv\Scripts\activate; python app.py""", 0, False
+            Wait 2000
+            SetStep "s4", "done"
+            SetBar 80
+
+            ' Step 5 - Frontend server
+            SetStep "s5", "active"
+            sh.Run "cmd /c start /min powershell -WindowStyle Minimized -ExecutionPolicy Bypass -Command ""Set-Location '" & root & "frontend'; python -m http.server 8080""", 0, False
+            Wait 2000
+            SetStep "s5", "done"
+            SetBar 100
+
+            ' Show button and auto-open
+            document.getElementById("openBtn").style.display = "flex"
+            document.querySelector(".subtitle").innerText = "All services running! Opening app..."
+            Wait 1500
+            openApp()
+        End Sub
+
+        Sub SetStep(id, state)
+            document.getElementById(id).className = "step " & state
+        End Sub
+
+        Sub SetBar(pct)
+            document.getElementById("bar").style.width = pct & "%"
+        End Sub
+
+        Sub Wait(ms)
+            Dim start
+            start = Timer
+            Do While (Timer - start) * 1000 < ms
+                DoEvents
+            Loop
+        End Sub
+
+        Sub openApp()
+            sh.Run "http://localhost:8080/index.html", 1, False
+        End Sub
+
+        Window.onload = GetRef("StartAll")
+    </script>
+</body>
+</html>

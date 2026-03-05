@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | DevVerse AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .greeting-bg {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.06) 50%, rgba(168, 85, 247, 0.04) 100%);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            background: linear-gradient(135deg, #f0f6ff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-value-green {
+            background: linear-gradient(135deg, #34d399, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-value-teal {
+            background: linear-gradient(135deg, #2dd4bf, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+
+<body class="bg-[#060b14] text-slate-50 flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-60 glass-nav border-r border-white/05 flex flex-col h-full flex-shrink-0">
+        <!-- Logo -->
+        <div class="p-5 flex items-center gap-2.5 border-b border-white/05">
+            <i data-lucide="cpu" class="text-blue-400 w-5 h-5"
+                style="filter:drop-shadow(0 0 6px rgba(59,130,246,0.6))"></i>
+            <span class="font-bold text-base">Devverse<span class="gradient-text">AI</span></span>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 p-3 flex flex-col gap-1">
+            <div class="text-[10px] font-semibold uppercase tracking-widest text-slate-600 px-3 mb-2 mt-1">Main</div>
+            <a href="#" class="nav-item active">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i> Dashboard
+            </a>
+            <a href="ide.html" class="nav-item">
+                <i data-lucide="code-2" class="w-4 h-4 flex-shrink-0"></i> Real-time IDE
+            </a>
+            <a href="projects.html" class="nav-item">
+                <i data-lucide="kanban" class="w-4 h-4 flex-shrink-0"></i> Projects
+            </a>
+
+            <div class="text-[10px] font-semibold uppercase tracking-widest text-slate-600 px-3 mb-2 mt-3">AI Tools
+            </div>
+            <a href="interviews.html" class="nav-item">
+                <i data-lucide="brain" class="w-4 h-4 flex-shrink-0"></i> Interview AI
+            </a>
+            <a href="resume.html" class="nav-item">
+                <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i> Resume Analyzer
+            </a>
+            <a href="knowledge.html" class="nav-item">
+                <i data-lucide="database" class="w-4 h-4 flex-shrink-0"></i> Knowledge Base
+            </a>
+        </nav>
+
+        <!-- User footer -->
+        <div class="p-3 border-t border-white/05">
+            <div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-white/04 transition">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    id="user-avatar">U</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold truncate leading-tight" id="user-name">Developer</p>
+                    <p class="text-[10px] text-slate-500 truncate">Free plan</p>
+                </div>
+                <button id="logout-btn" class="text-slate-600 hover:text-red-400 transition p-1">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
+
+        <!-- Top Header -->
+        <header
+            class="h-14 border-b border-white/05 flex items-center justify-between px-8 bg-[#060b14]/80 backdrop-blur-md flex-shrink-0">
+            <div>
+                <h2 class="text-sm font-semibold text-slate-200">Overview</h2>
+            </div>
+            <div class="flex items-center gap-3 text-slate-500">
+                <button class="hover:text-slate-200 transition p-1.5 rounded-lg hover:bg-white/05" title="Search">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </button>
+                <button class="hover:text-slate-200 transition p-1.5 rounded-lg hover:bg-white/05 relative"
+                    title="Notifications">
+                    <i data-lucide="bell" class="w-4 h-4"></i>
+                    <span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                </button>
+                <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-bold"
+                    id="header-avatar">U</div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-7 fade-in">
+
+            <!-- Greeting Banner -->
+            <div
+                class="greeting-bg rounded-2xl border border-white/05 px-6 py-5 mb-7 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-500 mb-1 font-medium">Welcome back 👋</p>
+                    <h1 class="text-xl font-bold text-white" id="greeting-name">Good morning, Developer!</h1>
+                    <p class="text-sm text-slate-400 mt-1">Here's your workspace overview for today.</p>
+                </div>
+                <div
+                    class="hidden md:flex items-center gap-2 text-xs text-slate-500 bg-white/04 border border-white/06 px-3 py-1.5 rounded-xl">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                    <span id="today-date">Loading...</span>
+                </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
+                <!-- Active Projects -->
+                <div class="stat-card stat-card-blue">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="stat-icon stat-icon-blue">
+                            <i data-lucide="kanban" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-[10px] text-slate-500 font-medium">PROJECTS</span>
+                    </div>
+                    <div class="stat-value" id="stat-projects">0</div>
+                    <p class="text-xs text-slate-500 mt-1.5">Active workspaces</p>
+                </div>
+
+                <!-- IDE Sessions -->
+                <div class="stat-card stat-card-indigo">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="stat-icon stat-icon-indigo">
+                            <i data-lucide="code-2" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-[10px] text-slate-500 font-medium">IDE</span>
+                    </div>
+                    <div class="stat-value" id="stat-ide">0 hr</div>
+                    <p class="text-xs text-slate-500 mt-1.5">Coding sessions</p>
+                </div>
+
+                <!-- Interview Score -->
+                <div class="stat-card stat-card-green">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="stat-icon stat-icon-green">
+                            <i data-lucide="brain" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-[10px] text-slate-500 font-medium">INTERVIEW</span>
+                    </div>
+                    <div class="stat-value stat-value-green" id="stat-interview">0%</div>
+                    <p class="text-xs text-slate-500 mt-1.5">Avg score</p>
+                </div>
+
+                <!-- KB Documents -->
+                <div class="stat-card stat-card-teal">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="stat-icon stat-icon-teal">
+                            <i data-lucide="database" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-[10px] text-slate-500 font-medium">KNOWLEDGE</span>
+                    </div>
+                    <div class="stat-value stat-value-teal" id="stat-kb">0</div>
+                    <p class="text-xs text-slate-500 mt-1.5">KB documents</p>
+                </div>
+            </div>
+
+            <!-- Bottom Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+                <!-- Quick Actions (wider) -->
+                <div class="lg:col-span-2 glass-panel rounded-2xl p-5">
+                    <h3 class="font-bold text-sm mb-4 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-yellow-500/15 flex items-center justify-center"><i
+                                data-lucide="zap" class="w-3.5 h-3.5 text-yellow-400"></i></span>
+                        Quick Actions
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="ide.html" class="quick-action">
+                            <div class="qa-icon qa-icon-blue">
+                                <i data-lucide="code-2" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-300">New IDE Room</span>
+                            <span class="text-[10px] text-slate-600">Collaborate live</span>
+                        </a>
+                        <a href="resume.html" class="quick-action">
+                            <div class="qa-icon qa-icon-blue"
+                                style="background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(99,102,241,0.1));color:#60a5fa">
+                                <i data-lucide="file-text" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-300">Analyze Resume</span>
+                            <span class="text-[10px] text-slate-600">AI powered</span>
+                        </a>
+                        <a href="interviews.html" class="quick-action">
+                            <div class="qa-icon qa-icon-green">
+                                <i data-lucide="brain" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-300">Interview Prep</span>
+                            <span class="text-[10px] text-slate-600">80+ problems</span>
+                        </a>
+                        <a href="knowledge.html" class="quick-action">
+                            <div class="qa-icon qa-icon-teal">
+                                <i data-lucide="database" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-300">Knowledge Base</span>
+                            <span class="text-[10px] text-slate-600">Add documents</span>
+                        </a>
+                        <a href="projects.html" class="quick-action col-span-2">
+                            <div class="w-8 h-8 rounded-lg qa-icon-purple flex items-center justify-center"
+                                style="background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(99,102,241,0.1));color:#c084fc">
+                                <i data-lucide="kanban" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-300">View Projects Board</span>
+                            <span class="text-[10px] text-slate-600">Manage your tasks</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity (wider) -->
+                <div class="lg:col-span-3 glass-panel rounded-2xl p-5">
+                    <h3 class="font-bold text-sm mb-5 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-blue-500/15 flex items-center justify-center"><i
+                                data-lucide="activity" class="w-3.5 h-3.5 text-blue-400"></i></span>
+                        Recent Activity
+                    </h3>
+                    <div class="space-y-4" id="recent-activity-list">
+                        <!-- Will be populated by dashboard.js -->
+                        <div class="timeline-item pb-4">
+                            <p class="text-sm text-slate-400 shimmer h-4 rounded w-3/4"></p>
+                            <p class="text-xs text-slate-600 mt-1 shimmer h-3 rounded w-1/3"></p>
+                        </div>
+                        <div class="timeline-item pb-4">
+                            <p class="text-sm text-slate-400 shimmer h-4 rounded w-2/3"></p>
+                            <p class="text-xs text-slate-600 mt-1 shimmer h-3 rounded w-1/4"></p>
+                        </div>
+                        <div class="timeline-item">
+                            <p class="text-sm text-slate-400 shimmer h-4 rounded w-1/2"></p>
+                            <p class="text-xs text-slate-600 mt-1 shimmer h-3 rounded w-1/3"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/dashboard.js"></script>
+    <script>
+        lucide.createIcons();
+
+        // Set greeting
+        const hour = new Date().getHours();
+        const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+        const userStr = localStorage.getItem('devverse_user');
+        const currentUser = userStr ? JSON.parse(userStr) : null;
+        const displayName = currentUser?.username || currentUser?.email?.split('@')[0] || 'Developer';
+
+        const greetEl = document.getElementById('greeting-name');
+        if (greetEl) greetEl.textContent = `${greeting}, ${displayName}!`;
+
+        const nameEl = document.getElementById('user-name');
+        if (nameEl) nameEl.textContent = displayName;
+
+        ['user-avatar', 'header-avatar'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = displayName.charAt(0).toUpperCase();
+        });
+
+        const dateEl = document.getElementById('today-date');
+        if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('devverse_token');
+                localStorage.removeItem('devverse_user');
+                window.location.href = '../index.html';
+            });
+        }
+    </script>
+</body>
+
+</html>

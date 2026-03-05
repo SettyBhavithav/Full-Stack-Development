@@ -1,0 +1,588 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview AI | DevVerse AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+    <style>
+        .q-item {
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            transition: all 0.15s;
+        }
+
+        .q-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .q-item.active {
+            background: rgba(59, 130, 246, 0.1);
+            border-left-color: #3b82f6;
+        }
+
+        .hint-card {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .hint-card.revealed {
+            max-height: 200px;
+        }
+
+        .score-ring {
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 1.2s ease;
+        }
+
+        .cat-btn.active {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            border-bottom: 2px solid #3b82f6;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-900 text-slate-50 flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-14 md:w-56 glass-nav border-r border-white/05 flex flex-col h-full flex-shrink-0">
+        <div class="p-4 flex items-center justify-center md:justify-start gap-2.5 border-b border-white/05">
+            <i data-lucide="cpu" class="text-blue-400 w-5 h-5"
+                style="filter:drop-shadow(0 0 6px rgba(59,130,246,0.6))"></i>
+            <span class="hidden md:block text-sm font-bold">Devverse<span class="gradient-text">AI</span></span>
+        </div>
+        <nav class="flex-1 p-2 md:p-3 flex flex-col gap-1">
+            <a href="dashboard.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i><span
+                    class="hidden md:block">Dashboard</span>
+            </a>
+            <a href="ide.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="code-2" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Real-time
+                    IDE</span>
+            </a>
+            <a href="projects.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="kanban" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Projects</span>
+            </a>
+            <a href="resume.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Resume
+                    AI</span>
+            </a>
+            <a href="#" class="nav-item active justify-center md:justify-start">
+                <i data-lucide="brain" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Interview
+                    AI</span>
+            </a>
+            <a href="knowledge.html" class="nav-item justify-center md:justify-start">
+                <i data-lucide="database" class="w-4 h-4 flex-shrink-0"></i><span class="hidden md:block">Knowledge
+                    Base</span>
+            </a>
+        </nav>
+        <div class="p-3 border-t border-white/05 hidden md:block">
+            <p class="text-[10px] text-slate-600 uppercase tracking-widest mb-3 font-semibold">Your Stats</p>
+            <div class="flex flex-col gap-2 text-xs">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Attempted</span>
+                    <span class="font-bold text-slate-200 badge badge-blue" id="stat-attempted">0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Passed</span>
+                    <span class="font-bold badge badge-easy" id="stat-passed">0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Avg Score</span>
+                    <span class="font-bold text-blue-400" id="stat-avg">0%</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main: 3 columns -->
+    <div class="flex-1 flex h-full overflow-hidden">
+
+        <!-- LEFT: Question List -->
+        <div class="w-72 flex-shrink-0 border-r border-white/05 flex flex-col bg-[#060b14]">
+            <!-- Search -->
+            <div class="p-3 border-b border-white/05">
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-500"></i>
+                    <input id="q-search" type="text" placeholder="Search problems..."
+                        class="w-full bg-[#0d1626] border border-white/06 text-sm rounded-xl pl-8 pr-3 py-2.5 outline-none text-slate-200 placeholder-slate-600 focus:border-blue-500/50 transition">
+                </div>
+            </div>
+            <!-- Difficulty filter -->
+            <div class="px-3 py-2.5 border-b border-white/05 flex flex-wrap gap-1.5">
+                <button data-diff="all"
+                    class="diff-btn active text-[11px] px-3 py-1 rounded-full font-semibold bg-blue-600 text-white">All</button>
+                <button data-diff="easy"
+                    class="diff-btn text-[11px] px-3 py-1 rounded-full font-semibold badge-easy">Easy</button>
+                <button data-diff="medium"
+                    class="diff-btn text-[11px] px-3 py-1 rounded-full font-semibold badge-medium">Medium</button>
+                <button data-diff="hard"
+                    class="diff-btn text-[11px] px-3 py-1 rounded-full font-semibold badge-hard">Hard</button>
+            </div>
+            <!-- Category filter -->
+            <div class="px-3 py-2 border-b border-white/05 overflow-x-auto">
+                <div class="flex gap-1.5 min-w-max pb-1">
+                    <button data-cat="all" class="cat-btn active text-[10px] px-2.5 py-1 rounded-lg font-semibold">All
+                        Topics</button>
+                    <button data-cat="Arrays"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Arrays</button>
+                    <button data-cat="Dynamic Programming"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">DP</button>
+                    <button data-cat="Graphs"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Graphs</button>
+                    <button data-cat="Trees"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Trees</button>
+                    <button data-cat="Strings"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Strings</button>
+                    <button data-cat="Linked Lists"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Lists</button>
+                    <button data-cat="Backtracking"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Backtrack</button>
+                    <button data-cat="Stack"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Stack</button>
+                    <button data-cat="Binary Search"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Bin
+                        Search</button>
+                    <button data-cat="Two Pointers"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">2
+                        Pointers</button>
+                    <button data-cat="Sliding Window"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Window</button>
+                    <button data-cat="Greedy"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Greedy</button>
+                    <button data-cat="Math"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Math</button>
+                    <button data-cat="Heap"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Heap</button>
+                    <button data-cat="Design"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Design</button>
+                    <button data-cat="Tries"
+                        class="cat-btn text-[10px] px-2.5 py-1 rounded-lg bg-[#0d1626] text-slate-400 font-medium border border-white/05">Tries</button>
+                </div>
+            </div>
+            <!-- Count -->
+            <div class="px-3 py-1.5 text-[10px] text-slate-600 border-b border-white/05 font-medium">
+                Showing <span id="q-count" class="text-slate-400">0</span> of <span id="q-total"
+                    class="text-slate-400">0</span> problems
+            </div>
+            <div id="question-list" class="flex-1 overflow-y-auto divide-y divide-white/03"></div>
+        </div>
+
+        <!-- CENTER: Problem + Editor -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+            <!-- Editor Header -->
+            <header
+                class="h-12 border-b border-slate-700/60 flex items-center justify-between px-4 bg-[#252526] flex-shrink-0">
+                <span class="text-slate-400 text-xs truncate max-w-xs" id="active-q-title">Select a problem â†’</span>
+                <div class="flex items-center gap-2">
+                    <select id="lang-select"
+                        class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded px-2 py-1 outline-none">
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                    </select>
+                    <button id="reset-btn" title="Reset" class="text-slate-400 hover:text-slate-200 transition"><i
+                            data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
+                    <button id="submit-btn" disabled
+                        class="bg-green-600 hover:bg-green-500 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-green-500/20">
+                        <i data-lucide="send" class="w-3 h-3"></i> Submit
+                    </button>
+                </div>
+            </header>
+
+            <!-- Split: problem desc + editor side by side -->
+            <div class="flex-1 flex overflow-hidden">
+
+                <!-- Problem Description Panel -->
+                <div class="w-[44%] border-r border-slate-700/60 flex flex-col overflow-hidden bg-slate-900">
+                    <!-- Tabs -->
+                    <div class="flex border-b border-slate-800 bg-slate-900/80">
+                        <button data-tab="desc"
+                            class="tab-btn active text-xs px-4 py-2.5 text-slate-400 border-b-2 border-blue-500 text-slate-200 font-medium">Description</button>
+                        <button data-tab="examples"
+                            class="tab-btn text-xs px-4 py-2.5 text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition">Examples</button>
+                        <button data-tab="constraints"
+                            class="tab-btn text-xs px-4 py-2.5 text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition">Constraints</button>
+                        <button data-tab="hints"
+                            class="tab-btn text-xs px-4 py-2.5 text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition">ðŸ’¡
+                            Hints</button>
+                    </div>
+                    <!-- Tab Content -->
+                    <div class="flex-1 overflow-y-auto p-5 text-sm text-slate-300 leading-relaxed" id="tab-content">
+                        <p class="text-slate-500 italic">â† Select a problem to begin.</p>
+                    </div>
+                </div>
+
+                <!-- Monaco Editor -->
+                <div id="editor-container" class="flex-1"></div>
+            </div>
+
+            <!-- AI Feedback Panel -->
+            <div id="feedback-panel" class="hidden border-t border-slate-700/60 bg-slate-950 overflow-y-auto max-h-64">
+                <div class="flex items-center gap-5 px-5 py-3 border-b border-slate-800">
+                    <div class="relative w-14 h-14 flex-shrink-0">
+                        <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#1e293b" stroke-width="9" />
+                            <circle id="score-arc" cx="50" cy="50" r="45" fill="none" stroke="#3b82f6" stroke-width="9"
+                                class="score-ring" />
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center text-sm font-bold"
+                            id="score-text">0</div>
+                    </div>
+                    <div class="flex-1">
+                        <div id="verdict-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full inline-block mb-1">
+                            â€”
+                        </div>
+                        <div class="text-xs text-slate-500 flex gap-4">
+                            <span>â± <span class="text-slate-300" id="fb-time">â€”</span></span>
+                            <span>ðŸ—„ <span class="text-slate-300" id="fb-space">â€”</span></span>
+                        </div>
+                    </div>
+                    <button id="close-feedback" class="text-slate-500 hover:text-slate-200"><i data-lucide="x"
+                            class="w-4 h-4"></i></button>
+                </div>
+                <div class="grid grid-cols-2 gap-4 p-4">
+                    <div>
+                        <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">AI Feedback</h4>
+                        <ul id="fb-feedback" class="space-y-1.5 text-xs"></ul>
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">ðŸ’¡ Suggestions
+                        </h4>
+                        <ul id="fb-suggestions" class="space-y-1.5 text-xs text-slate-400"></ul>
+                    </div>
+                </div>
+                <div id="exec-output-section" class="hidden px-4 pb-4">
+                    <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ðŸ–¥ Python Output
+                    </h4>
+                    <pre id="fb-exec-output"
+                        class="bg-slate-900 rounded-lg p-3 text-xs font-mono text-slate-300 whitespace-pre-wrap max-h-28 overflow-y-auto"></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Submission History -->
+        <div class="w-56 flex-shrink-0 border-l border-slate-800 flex flex-col bg-slate-900/50 hidden xl:flex">
+            <div class="p-3 border-b border-slate-800">
+                <h3 class="font-bold text-xs flex items-center gap-2 text-slate-300">
+                    <i data-lucide="history" class="w-3.5 h-3.5 text-purple-400"></i> Submissions
+                </h3>
+            </div>
+            <div id="history-list" class="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5">
+                <div class="text-slate-500 text-xs italic text-center mt-4">No submissions yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const token = localStorage.getItem('devverse_token');
+        if (!token) window.location.href = '../index.html';
+        const authHeaders = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+
+        let questions = [], activeQuestion = null, revealedHints = 0;
+        let currentDiff = 'all', currentCat = 'all', searchTerm = '';
+        let activeTab = 'desc';
+
+        // ---- Load Questions ----
+        async function loadQuestions() {
+            try {
+                const res = await fetch('http://localhost:5000/api/interviews/questions', { headers: authHeaders });
+                questions = await res.json();
+                document.getElementById('q-total').textContent = questions.length;
+                renderList();
+            } catch (e) { console.error(e); }
+        }
+
+        function getFiltered() {
+            return questions.filter(q => {
+                const diffOk = currentDiff === 'all' || q.difficulty === currentDiff;
+                const catOk = currentCat === 'all' || q.category === currentCat;
+                const srchOk = !searchTerm || q.title.toLowerCase().includes(searchTerm);
+                return diffOk && catOk && srchOk;
+            });
+        }
+
+        function renderList() {
+            const filtered = getFiltered();
+            document.getElementById('q-count').textContent = filtered.length;
+            const list = document.getElementById('question-list');
+            list.innerHTML = filtered.map((q, i) => {
+                const diffCls = q.difficulty === 'easy' ? 'text-green-400' : q.difficulty === 'hard' ? 'text-red-400' : 'text-yellow-400';
+                return `<div class="q-item px-3 py-2.5 ${activeQuestion?.id === q.id ? 'active' : ''}" data-id="${q.id}">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold ${diffCls} w-5 shrink-0">${q.difficulty[0].toUpperCase()}</span>
+                        <span class="text-xs text-slate-200 truncate flex-1">${q.title}</span>
+                    </div>
+                    <div class="ml-5 text-[10px] text-slate-500 mt-0.5">${q.category || 'Arrays'}</div>
+                </div>`;
+            }).join('');
+            list.querySelectorAll('.q-item').forEach(item => {
+                item.addEventListener('click', () => selectQuestion(questions.find(x => x.id == item.dataset.id)));
+            });
+        }
+
+        // ---- Filters ----
+        document.querySelectorAll('.diff-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active', '!bg-blue-600', '!text-white'));
+                btn.classList.add('active', '!bg-blue-600', '!text-white');
+                currentDiff = btn.dataset.diff;
+                renderList();
+            });
+        });
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.cat-btn').forEach(b => { b.className = b.className.replace(/bg-blue-600 text-white/, 'bg-slate-800 text-slate-400'); b.classList.remove('active'); });
+                btn.classList.add('active');
+                btn.className = btn.className.replace('bg-slate-800 text-slate-400', 'bg-blue-600 text-white');
+                currentCat = btn.dataset.cat;
+                renderList();
+            });
+        });
+        document.getElementById('q-search').addEventListener('input', e => {
+            searchTerm = e.target.value.trim().toLowerCase();
+            renderList();
+        });
+
+        // ---- Tab Logic ----
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('active', 'border-blue-500', 'text-slate-200');
+                    b.classList.add('border-transparent', 'text-slate-400');
+                });
+                btn.classList.add('active', 'border-blue-500', 'text-slate-200');
+                btn.classList.remove('border-transparent', 'text-slate-400');
+                activeTab = btn.dataset.tab;
+                if (activeQuestion) renderTab(activeQuestion);
+            });
+        });
+
+        function renderTab(q) {
+            const el = document.getElementById('tab-content');
+            if (activeTab === 'desc') {
+                const diffCls = q.difficulty === 'easy' ? 'text-green-400 bg-green-400/10' : q.difficulty === 'hard' ? 'text-red-400 bg-red-400/10' : 'text-yellow-400 bg-yellow-400/10';
+                el.innerHTML = `
+                    <div class="flex items-center gap-2 mb-4 flex-wrap">
+                        <h3 class="font-bold text-base text-slate-100">${q.title}</h3>
+                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-full capitalize ${diffCls}">${q.difficulty}</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">${q.category || 'Arrays'}</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed whitespace-pre-line">${q.description}</p>`;
+            } else if (activeTab === 'examples') {
+                el.innerHTML = `<div class="text-sm text-slate-300 leading-relaxed">
+                    <h4 class="font-bold text-slate-200 mb-3 flex items-center gap-2"><i data-lucide="flask-conical" class="w-4 h-4 text-blue-400"></i> Examples</h4>
+                    <div class="bg-slate-800/60 rounded-xl p-4 font-mono text-xs whitespace-pre-line">${q.examples || 'No examples provided.'}</div>
+                </div>`;
+                lucide.createIcons();
+            } else if (activeTab === 'constraints') {
+                el.innerHTML = `<div class="text-sm text-slate-300">
+                    <h4 class="font-bold text-slate-200 mb-3 flex items-center gap-2"><i data-lucide="ruler" class="w-4 h-4 text-yellow-400"></i> Constraints</h4>
+                    <ul class="space-y-1.5">${(q.constraints_text || 'No constraints listed.').split('\n').map(c => `<li class="flex items-start gap-2"><span class="text-blue-400 mt-1">â†’</span><span class="text-xs font-mono">${c}</span></li>`).join('')}</ul>
+                </div>`;
+                lucide.createIcons();
+            } else if (activeTab === 'hints') {
+                const hints = (() => {
+                    try { return typeof q.hints === 'string' ? JSON.parse(q.hints) : (q.hints || []); } catch (e) { return []; }
+                })();
+                if (hints.length === 0) {
+                    el.innerHTML = `<div class="text-slate-500 text-sm italic">No hints available for this problem.</div>`;
+                    return;
+                }
+                el.innerHTML = `
+                    <div>
+                        <p class="text-xs text-slate-500 mb-4 flex items-center gap-2"><i data-lucide="lightbulb" class="w-3.5 h-3.5 text-yellow-400"></i> Hints are revealed one at a time. Try to solve it before peeking!</p>
+                        <div class="space-y-3" id="hints-container">
+                            ${hints.map((h, i) => `
+                                <div class="rounded-xl border border-slate-700 overflow-hidden">
+                                    <button onclick="revealHint(${i})" id="hint-btn-${i}" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-left ${i < revealedHints ? 'bg-yellow-500/10 text-yellow-300' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'} transition">
+                                        <i data-lucide="${i < revealedHints ? 'eye' : 'eye-off'}" class="w-3.5 h-3.5"></i>
+                                        Hint ${i + 1} ${i < revealedHints ? '' : '(click to reveal)'}
+                                    </button>
+                                    <div id="hint-content-${i}" class="hint-card ${i < revealedHints ? 'revealed' : ''}">
+                                        <p class="px-4 py-3 text-sm text-slate-300 bg-yellow-500/5 border-t border-yellow-500/20">${h}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${revealedHints < hints.length ? `<button onclick="revealNextHint(${hints.length})" class="mt-4 w-full text-xs bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-300 py-2 rounded-lg transition font-medium">Reveal Next Hint (${revealedHints}/${hints.length})</button>` : `<p class="mt-4 text-xs text-green-400 text-center">All hints revealed!</p>`}
+                    </div>`;
+                lucide.createIcons();
+            }
+        }
+
+        window.revealHint = function (i) {
+            if (i >= revealedHints) {
+                revealedHints = i + 1;
+                renderTab(activeQuestion);
+            }
+        };
+        window.revealNextHint = function (total) {
+            if (revealedHints < total) {
+                revealedHints++;
+                renderTab(activeQuestion);
+            }
+        };
+
+        // ---- Select Question ----
+        function selectQuestion(q) {
+            activeQuestion = q;
+            revealedHints = 0;
+            document.getElementById('active-q-title').textContent = `#${q.id} ${q.title}`;
+            document.getElementById('submit-btn').disabled = false;
+            document.getElementById('feedback-panel').classList.add('hidden');
+            activeTab = 'desc';
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active', 'border-blue-500', 'text-slate-200');
+                b.classList.add('border-transparent', 'text-slate-400');
+            });
+            document.querySelector('[data-tab="desc"]').classList.add('active', 'border-blue-500', 'text-slate-200');
+            document.querySelector('[data-tab="desc"]').classList.remove('border-transparent', 'text-slate-400');
+            renderTab(q);
+            setStarterCode(document.getElementById('lang-select').value, q.title);
+            renderList();
+        }
+
+        function setStarterCode(lang, title) {
+            if (!window.editor) return;
+            const starters = {
+                javascript: `/**\n * ${title}\n * @param {*} input\n * @return {*}\n */\nfunction solution(input) {\n    // Write your solution here\n    \n}\n\nconsole.log(solution(/* test input */));`,
+                python: `# ${title}\n\ndef solution(input_data):\n    # Write your solution here\n    pass\n\nprint(solution(None))  # replace with test input`,
+                java: `// ${title}\npublic class Solution {\n    public Object solution(Object input) {\n        // Write your solution here\n        return null;\n    }\n}`,
+                cpp: `// ${title}\n#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your solution here\n    return 0;\n}`
+            };
+            window.isRemote = true;
+            window.editor.setValue(starters[lang] || starters.javascript);
+            monaco.editor.setModelLanguage(window.editor.getModel(), lang === 'cpp' ? 'cpp' : lang);
+            window.isRemote = false;
+        }
+
+        // ---- Monaco ----
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' } });
+        require(['vs/editor/editor.main'], () => {
+            window.editor = monaco.editor.create(document.getElementById('editor-container'), {
+                value: '// Select a problem from the left to start coding!',
+                language: 'javascript',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                minimap: { enabled: false },
+                fontSize: 14,
+                fontFamily: "'JetBrains Mono','Fira Code',monospace",
+                scrollBeyondLastLine: false,
+                wordWrap: 'on',
+                tabSize: 4
+            });
+        });
+
+        document.getElementById('lang-select').addEventListener('change', e => {
+            if (activeQuestion) setStarterCode(e.target.value, activeQuestion.title);
+        });
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            if (activeQuestion) setStarterCode(document.getElementById('lang-select').value, activeQuestion.title);
+        });
+
+        // ---- Submit ----
+        document.getElementById('submit-btn').addEventListener('click', async () => {
+            if (!activeQuestion || !window.editor) return;
+            const code = window.editor.getValue().trim();
+            const lang = document.getElementById('lang-select').value;
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Analyzing...';
+            lucide.createIcons();
+            try {
+                const fbRes = await fetch('http://localhost:5001/api/interview/analyze', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question_title: activeQuestion.title, code, language: lang })
+                });
+                const fb = await fbRes.json();
+                await fetch('http://localhost:5000/api/interviews/submit', {
+                    method: 'POST', headers: authHeaders,
+                    body: JSON.stringify({ question_id: activeQuestion.id, code, language: lang, status: fb.passed ? 'passed' : 'failed', score: fb.score })
+                });
+                showFeedback(fb);
+                loadHistory(); loadStats();
+            } catch (e) {
+                alert('Cannot connect to AI service. Ensure Python service is running on port 5001.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="send" class="w-3 h-3"></i> Submit';
+                lucide.createIcons();
+            }
+        });
+
+        function showFeedback(fb) {
+            const panel = document.getElementById('feedback-panel');
+            panel.classList.remove('hidden');
+            const score = fb.score || 0;
+            const arc = document.getElementById('score-arc');
+            arc.style.strokeDashoffset = 283 - (283 * score / 100);
+            arc.style.stroke = score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+            document.getElementById('score-text').textContent = score;
+            const badge = document.getElementById('verdict-badge');
+            badge.className = `text-xs font-bold px-2.5 py-0.5 rounded-full ${fb.passed ? 'bg-green-400/15 text-green-400' : 'bg-red-400/15 text-red-400'}`;
+            badge.textContent = fb.passed ? 'âœ… Accepted' : 'âŒ Wrong Answer';
+            document.getElementById('fb-time').textContent = fb.time_complexity;
+            document.getElementById('fb-space').textContent = fb.space_complexity;
+            document.getElementById('fb-feedback').innerHTML = (fb.feedback || []).map(f => `<li class="text-slate-300">${f}</li>`).join('') || '<li class="text-slate-500">No specific feedback.</li>';
+            document.getElementById('fb-suggestions').innerHTML = (fb.suggestions || []).map(s => `<li class="before:content-['â†’'] before:mr-1 before:text-blue-500">${s}</li>`).join('');
+            if (fb.execution_output?.trim()) {
+                document.getElementById('exec-output-section').classList.remove('hidden');
+                document.getElementById('fb-exec-output').textContent = fb.execution_output;
+            } else {
+                document.getElementById('exec-output-section').classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        document.getElementById('close-feedback').addEventListener('click', () => document.getElementById('feedback-panel').classList.add('hidden'));
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('http://localhost:5000/api/interviews/submissions', { headers: authHeaders });
+                const subs = await res.json();
+                const list = document.getElementById('history-list');
+                list.innerHTML = subs.length === 0
+                    ? '<div class="text-slate-500 text-xs italic text-center mt-4">No submissions yet</div>'
+                    : subs.map(s => `<div class="rounded-lg bg-slate-800/50 px-2.5 py-2 border border-slate-800">
+                        <div class="flex items-center justify-between mb-0.5">
+                            <span class="text-[11px] text-slate-200 font-medium truncate flex-1">${s.question_title}</span>
+                            <span class="text-[10px] font-bold ml-1 ${s.status === 'passed' ? 'text-green-400' : 'text-red-400'}">${s.status === 'passed' ? 'âœ“' : 'âœ—'}</span>
+                        </div>
+                        <div class="flex text-[10px] text-slate-500 gap-2">
+                            <span>${s.language}</span><span class="ml-auto">Score: <b class="text-slate-300">${s.score}</b></span>
+                        </div>
+                    </div>`).join('');
+            } catch (e) { }
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('http://localhost:5000/api/interviews/submissions', { headers: authHeaders });
+                const subs = await res.json();
+                document.getElementById('stat-attempted').textContent = subs.length;
+                document.getElementById('stat-passed').textContent = subs.filter(s => s.status === 'passed').length;
+                const avg = subs.length ? Math.round(subs.reduce((a, b) => a + (b.score || 0), 0) / subs.length) : 0;
+                document.getElementById('stat-avg').textContent = avg + '%';
+            } catch (e) { }
+        }
+
+        loadQuestions(); loadHistory(); loadStats();
+    </script>
+</body>
+
+</html>
