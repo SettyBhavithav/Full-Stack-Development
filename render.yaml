@@ -2,8 +2,9 @@ services:
   - type: web
     name: devverse-node-api
     env: node
-    buildCommand: "cd backend && npm install"
-    startCommand: "cd backend && node server.js"
+    rootDir: devverse-ai/backend
+    buildCommand: "npm install"
+    startCommand: "node server.js"
     envVars:
       - key: PORT
         value: "5000"
@@ -27,8 +28,9 @@ services:
   - type: web
     name: devverse-python-api
     env: python
-    buildCommand: "cd python-services && pip install -r requirements.txt && python -m spacy download en_core_web_sm"
-    startCommand: "cd python-services && gunicorn -w 1 -b 0.0.0.0:$PORT app:app"
+    rootDir: devverse-ai/python-services
+    buildCommand: "pip install -r requirements.txt && python -m spacy download en_core_web_sm"
+    startCommand: "gunicorn -w 1 -b 0.0.0.0:$PORT app:app"
     envVars:
       - key: PORT
         value: "5001"
@@ -38,8 +40,9 @@ services:
   - type: worker
     name: devverse-worker
     env: node
-    buildCommand: "cd workers && npm install"
-    startCommand: "cd workers && node queue_worker.js"
+    rootDir: devverse-ai/workers
+    buildCommand: "npm install"
+    startCommand: "node queue_worker.js"
     envVars:
       - key: REDIS_URL
         value: "replace-with-upstash-redis-url"
