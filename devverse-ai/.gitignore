@@ -1,3 +1,5 @@
 
 workers/node_modules/
 .vercel
+node_modules/
+backend/node_modules/

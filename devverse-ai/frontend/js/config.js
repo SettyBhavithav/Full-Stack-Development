@@ -4,7 +4,7 @@
 const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
 // Replace these with your actual Render/Railway/VPS production URLs after deploying the backend services
-const PROD_NODE_URL = 'https://devverse-node-api.onrender.com';
+const PROD_NODE_URL = ''; // Empty so it uses the same origin on Vercel
 const PROD_PYTHON_URL = 'https://devverse-python-api.onrender.com';
 
 const DEV_NODE_URL = 'http://localhost:5000';
