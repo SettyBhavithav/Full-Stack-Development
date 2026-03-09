@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const headers = { 'Authorization': `Bearer ${token}` };
 
         // 1. Fetch Projects for active count
-        const projectsRes = await fetch('http://localhost:5000/api/projects', { headers });
+        const projectsRes = await fetch(`${CONFIG.API_BASE_URL}/projects`, { headers });
         if (projectsRes.ok) {
             const projects = await projectsRes.json();
             document.getElementById('stat-projects').innerText = projects.length;

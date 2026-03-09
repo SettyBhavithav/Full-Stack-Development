@@ -243,6 +243,7 @@
         </div>
     </aside>
 
+    <script src="../js/config.js"></script>
     <script>
         lucide.createIcons();
 
@@ -275,77 +276,81 @@
             document.getElementById('room-join-screen').style.display = 'none';
             document.getElementById('room-badge').textContent = roomId;
 
-            // Connect socket
-            socket = io('http://localhost:5000');
-            socket.on('connect', () => {
-                socket.emit('join_room', { roomId, userName: myName });
-                termLog(`<span class="text-green-400">✓ Connected to room: ${roomId}</span>`);
-                termLog(`<span class="text-slate-500">Share this Room ID with teammates to collaborate in real-time.</span>`);
-            });
+            function initSocket() {
+                socket = io(CONFIG.SOCKET_URL);
+                socket.on('connect', () => {
+                    socket.emit('join_room', { roomId, userName: myName });
+                    termLog(`<span class="text-green-400">✓ Connected to room: ${roomId}</span>`);
+                    termLog(`<span class="text-slate-500">Share this Room ID with teammates to collaborate in real-time.</span>`);
+                });
 
-            socket.on('room_state', ({ code, language, users }) => {
-                // Set existing room code
-                if (window.editor) {
-                    window.isRemoteChange = true;
-                    window.editor.setValue(code);
-                    window.isRemoteChange = false;
-                    // Set language
+                socket.on('room_state', ({ code, language, users }) => {
+                    // Set existing room code
+                    if (window.editor) {
+                        window.isRemoteChange = true;
+                        window.editor.setValue(code);
+                        window.isRemoteChange = false;
+                        // Set language
+                        const langSelect = document.getElementById('language-select');
+                        langSelect.value = language;
+                        updateFileExt(language);
+                        monaco.editor.setModelLanguage(window.editor.getModel(), language);
+                    }
+                    renderUserList(users);
+                    renderAvatarStack(users);
+                });
+
+                socket.on('user_joined', ({ id, name, color }) => {
+                    termLog(`<span style="color:${color}">→ ${name} joined the room</span>`);
+                    appendChatSystem(`${name} joined`);
+                });
+
+                socket.on('user_left', ({ id, name }) => {
+                    termLog(`<span class="text-slate-500">← ${name || 'A user'} left the room</span>`);
+                    appendChatSystem(`${name || 'A user'} left`);
+                });
+
+                socket.on('user_list', (users) => {
+                    renderUserList(users);
+                    renderAvatarStack(users);
+                });
+
+                socket.on('code_update', (code) => {
+                    if (window.editor && window.editor.getValue() !== code) {
+                        window.isRemoteChange = true;
+                        const pos = window.editor.getPosition();
+                        window.editor.setValue(code);
+                        window.editor.setPosition(pos);
+                        window.isRemoteChange = false;
+                    }
+                });
+
+                socket.on('language_update', (lang) => {
                     const langSelect = document.getElementById('language-select');
-                    langSelect.value = language;
-                    updateFileExt(language);
-                    monaco.editor.setModelLanguage(window.editor.getModel(), language);
-                }
-                renderUserList(users);
-                renderAvatarStack(users);
-            });
+                    langSelect.value = lang;
+                    updateFileExt(lang);
+                    if (window.editor) {
+                        monaco.editor.setModelLanguage(window.editor.getModel(), lang);
+                    }
+                });
 
-            socket.on('user_joined', ({ id, name, color }) => {
-                termLog(`<span style="color:${color}">→ ${name} joined the room</span>`);
-                appendChatSystem(`${name} joined`);
-            });
+                socket.on('chat_message', (msg) => {
+                    appendChatMessage(msg);
+                    if (!chatOpen) {
+                        unreadChats++;
+                        const badge = document.getElementById('chat-badge');
+                        badge.textContent = unreadChats;
+                        badge.classList.remove('hidden');
+                    }
+                });
 
-            socket.on('user_left', ({ id, name }) => {
-                termLog(`<span class="text-slate-500">← ${name || 'A user'} left the room</span>`);
-                appendChatSystem(`${name || 'A user'} left`);
-            });
+                socket.on('disconnect', () => {
+                    termLog(`<span class="text-red-400">✗ Disconnected from server.</span>`);
+                });
+            }
 
-            socket.on('user_list', (users) => {
-                renderUserList(users);
-                renderAvatarStack(users);
-            });
-
-            socket.on('code_update', (code) => {
-                if (window.editor && window.editor.getValue() !== code) {
-                    window.isRemoteChange = true;
-                    const pos = window.editor.getPosition();
-                    window.editor.setValue(code);
-                    window.editor.setPosition(pos);
-                    window.isRemoteChange = false;
-                }
-            });
-
-            socket.on('language_update', (lang) => {
-                const langSelect = document.getElementById('language-select');
-                langSelect.value = lang;
-                updateFileExt(lang);
-                if (window.editor) {
-                    monaco.editor.setModelLanguage(window.editor.getModel(), lang);
-                }
-            });
-
-            socket.on('chat_message', (msg) => {
-                appendChatMessage(msg);
-                if (!chatOpen) {
-                    unreadChats++;
-                    const badge = document.getElementById('chat-badge');
-                    badge.textContent = unreadChats;
-                    badge.classList.remove('hidden');
-                }
-            });
-
-            socket.on('disconnect', () => {
-                termLog(`<span class="text-red-400">✗ Disconnected from server.</span>`);
-            });
+            // Connect socket
+            initSocket();
 
             initMonaco();
         }
@@ -537,7 +542,7 @@
                         }, 10);
                     } else if (lang === 'python') {
                         try {
-                            const res = await fetch('http://localhost:5001/api/execute/python', {
+                            const res = await fetch(`${CONFIG.PYTHON_API_URL}/execute/python`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ code })

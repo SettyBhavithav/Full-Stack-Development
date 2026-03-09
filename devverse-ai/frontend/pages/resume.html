@@ -393,6 +393,7 @@
         </div>
     </main>
 
+    <script src="../js/config.js"></script>
     <script>
         lucide.createIcons();
         const token = localStorage.getItem('devverse_token');
@@ -431,7 +432,7 @@
             const jd = document.getElementById('job-desc').value.trim();
             if (jd) formData.append('job_description', jd);
             try {
-                const res = await fetch('http://localhost:5001/api/resume/analyze', { method: 'POST', body: formData });
+                const res = await fetch(`${CONFIG.PYTHON_API_URL}/resume/analyze`, { method: 'POST', body: formData });
                 const data = await res.json();
                 if (data.error) { alert(data.error); showPlaceholder(); return; }
                 setTimeout(() => showResults(data), 2000);

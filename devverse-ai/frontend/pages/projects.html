@@ -242,6 +242,7 @@
 
     </div>
 
+    <script src="../js/config.js"></script>
     <script>
         lucide.createIcons();
 
@@ -272,7 +273,7 @@
         // ---- PROJECTS ----
         async function loadProjects() {
             try {
-                const res = await fetch('http://localhost:5000/api/projects', { headers });
+                const res = await fetch(`${CONFIG.API_BASE_URL}/projects`, { headers });
                 const projects = await res.json();
                 projectSelect.innerHTML = projects.length === 0
                     ? '<option value="">No projects. Create one!</option>'
@@ -299,7 +300,7 @@
 
         deleteProjectBtn.addEventListener('click', async () => {
             if (!currentProjectId || !confirm('Delete this project and all its tasks?')) return;
-            await fetch(`http://localhost:5000/api/projects/${currentProjectId}`, { method: 'DELETE', headers });
+            await fetch(`${CONFIG.API_BASE_URL}/projects/${currentProjectId}`, { method: 'DELETE', headers });
             currentProjectId = null;
             newTaskBtn.disabled = true;
             deleteProjectBtn.classList.add('hidden');
@@ -312,7 +313,7 @@
         async function loadTasks(projectId) {
             colTodo.innerHTML = ''; colInProgress.innerHTML = ''; colDone.innerHTML = '';
             try {
-                const res = await fetch(`http://localhost:5000/api/tasks/${projectId}`, { headers });
+                const res = await fetch(`${CONFIG.API_BASE_URL}/tasks/${projectId}`, { headers });
                 const tasks = await res.json();
                 tasks.forEach(task => {
                     const el = createTaskCard(task);
@@ -386,7 +387,7 @@
                 e.stopPropagation();
                 const taskId = e.currentTarget.dataset.id;
                 if (!confirm('Delete this task?')) return;
-                await fetch(`http://localhost:5000/api/tasks/${taskId}`, { method: 'DELETE', headers });
+                await fetch(`${CONFIG.API_BASE_URL}/tasks/${taskId}`, { method: 'DELETE', headers });
                 div.remove();
                 updateBadges();
             });
@@ -415,7 +416,7 @@
                 if (evt.to.id === 'col-inprogress') newStatus = 'in_progress';
                 else if (evt.to.id === 'col-done') newStatus = 'done';
                 if (evt.from !== evt.to) {
-                    await fetch(`http://localhost:5000/api/tasks/${taskId}/status`, { method: 'PUT', headers, body: JSON.stringify({ status: newStatus }) });
+                    await fetch(`${CONFIG.API_BASE_URL}/tasks/${taskId}/status`, { method: 'PUT', headers, body: JSON.stringify({ status: newStatus }) });
                 }
                 updateBadges();
             }
@@ -449,7 +450,7 @@
             e.preventDefault();
             const name = document.getElementById('proj-name').value.trim();
             const desc = document.getElementById('proj-desc').value.trim();
-            const res = await fetch('http://localhost:5000/api/projects', { method: 'POST', headers, body: JSON.stringify({ name, description: desc }) });
+            const res = await fetch(`${CONFIG.API_BASE_URL}/projects`, { method: 'POST', headers, body: JSON.stringify({ name, description: desc }) });
             if (res.ok) { closeAllModals(); document.getElementById('project-form').reset(); loadProjects(); }
         });
 
@@ -488,12 +489,12 @@
 
             if (editingId) {
                 // Edit
-                await fetch(`http://localhost:5000/api/tasks/${editingId}`, {
+                await fetch(`${CONFIG.API_BASE_URL}/tasks/${editingId}`, {
                     method: 'PUT', headers, body: JSON.stringify({ title, description, priority, label, deadline })
                 });
             } else {
                 // Create
-                await fetch('http://localhost:5000/api/tasks', {
+                await fetch(`${CONFIG.API_BASE_URL}/tasks`, {
                     method: 'POST', headers, body: JSON.stringify({ project_id: currentProjectId, title, description, priority, label, deadline })
                 });
             }

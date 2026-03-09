@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -185,7 +185,7 @@
             <!-- Editor Header -->
             <header
                 class="h-12 border-b border-slate-700/60 flex items-center justify-between px-4 bg-[#252526] flex-shrink-0">
-                <span class="text-slate-400 text-xs truncate max-w-xs" id="active-q-title">Select a problem â†’</span>
+                <span class="text-slate-400 text-xs truncate max-w-xs" id="active-q-title">Select a problem →</span>
                 <div class="flex items-center gap-2">
                     <select id="lang-select"
                         class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded px-2 py-1 outline-none">
@@ -217,12 +217,12 @@
                         <button data-tab="constraints"
                             class="tab-btn text-xs px-4 py-2.5 text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition">Constraints</button>
                         <button data-tab="hints"
-                            class="tab-btn text-xs px-4 py-2.5 text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition">ðŸ’¡
+                            class="tab-btn text-xs px-4 py-2.5 text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition">💡
                             Hints</button>
                     </div>
                     <!-- Tab Content -->
                     <div class="flex-1 overflow-y-auto p-5 text-sm text-slate-300 leading-relaxed" id="tab-content">
-                        <p class="text-slate-500 italic">â† Select a problem to begin.</p>
+                        <p class="text-slate-500 italic">← Select a problem to begin.</p>
                     </div>
                 </div>
 
@@ -244,11 +244,11 @@
                     </div>
                     <div class="flex-1">
                         <div id="verdict-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full inline-block mb-1">
-                            â€”
+                            —
                         </div>
                         <div class="text-xs text-slate-500 flex gap-4">
-                            <span>â± <span class="text-slate-300" id="fb-time">â€”</span></span>
-                            <span>ðŸ—„ <span class="text-slate-300" id="fb-space">â€”</span></span>
+                            <span>⏱ <span class="text-slate-300" id="fb-time">—</span></span>
+                            <span>🗄 <span class="text-slate-300" id="fb-space">—</span></span>
                         </div>
                     </div>
                     <button id="close-feedback" class="text-slate-500 hover:text-slate-200"><i data-lucide="x"
@@ -260,13 +260,13 @@
                         <ul id="fb-feedback" class="space-y-1.5 text-xs"></ul>
                     </div>
                     <div>
-                        <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">ðŸ’¡ Suggestions
+                        <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">💡 Suggestions
                         </h4>
                         <ul id="fb-suggestions" class="space-y-1.5 text-xs text-slate-400"></ul>
                     </div>
                 </div>
                 <div id="exec-output-section" class="hidden px-4 pb-4">
-                    <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ðŸ–¥ Python Output
+                    <h4 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">🖥 Python Output
                     </h4>
                     <pre id="fb-exec-output"
                         class="bg-slate-900 rounded-lg p-3 text-xs font-mono text-slate-300 whitespace-pre-wrap max-h-28 overflow-y-auto"></pre>
@@ -287,6 +287,7 @@
         </div>
     </div>
 
+    <script src="../js/config.js"></script>
     <script>
         lucide.createIcons();
         const token = localStorage.getItem('devverse_token');
@@ -300,7 +301,7 @@
         // ---- Load Questions ----
         async function loadQuestions() {
             try {
-                const res = await fetch('http://localhost:5000/api/interviews/questions', { headers: authHeaders });
+                const res = await fetch(`${CONFIG.API_BASE_URL}/interviews/questions`, { headers: authHeaders });
                 questions = await res.json();
                 document.getElementById('q-total').textContent = questions.length;
                 renderList();
@@ -392,7 +393,7 @@
             } else if (activeTab === 'constraints') {
                 el.innerHTML = `<div class="text-sm text-slate-300">
                     <h4 class="font-bold text-slate-200 mb-3 flex items-center gap-2"><i data-lucide="ruler" class="w-4 h-4 text-yellow-400"></i> Constraints</h4>
-                    <ul class="space-y-1.5">${(q.constraints_text || 'No constraints listed.').split('\n').map(c => `<li class="flex items-start gap-2"><span class="text-blue-400 mt-1">â†’</span><span class="text-xs font-mono">${c}</span></li>`).join('')}</ul>
+                    <ul class="space-y-1.5">${(q.constraints_text || 'No constraints listed.').split('\n').map(c => `<li class="flex items-start gap-2"><span class="text-blue-400 mt-1">→</span><span class="text-xs font-mono">${c}</span></li>`).join('')}</ul>
                 </div>`;
                 lucide.createIcons();
             } else if (activeTab === 'hints') {
@@ -505,12 +506,12 @@
             btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Analyzing...';
             lucide.createIcons();
             try {
-                const fbRes = await fetch('http://localhost:5001/api/interview/analyze', {
+                const fbRes = await fetch(`${CONFIG.PYTHON_API_URL}/interview/analyze`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ question_title: activeQuestion.title, code, language: lang })
                 });
                 const fb = await fbRes.json();
-                await fetch('http://localhost:5000/api/interviews/submit', {
+                await fetch(`${CONFIG.API_BASE_URL}/interviews/submit`, {
                     method: 'POST', headers: authHeaders,
                     body: JSON.stringify({ question_id: activeQuestion.id, code, language: lang, status: fb.passed ? 'passed' : 'failed', score: fb.score })
                 });
@@ -535,11 +536,11 @@
             document.getElementById('score-text').textContent = score;
             const badge = document.getElementById('verdict-badge');
             badge.className = `text-xs font-bold px-2.5 py-0.5 rounded-full ${fb.passed ? 'bg-green-400/15 text-green-400' : 'bg-red-400/15 text-red-400'}`;
-            badge.textContent = fb.passed ? 'âœ… Accepted' : 'âŒ Wrong Answer';
+            badge.textContent = fb.passed ? '✅ Accepted' : '❌ Wrong Answer';
             document.getElementById('fb-time').textContent = fb.time_complexity;
             document.getElementById('fb-space').textContent = fb.space_complexity;
             document.getElementById('fb-feedback').innerHTML = (fb.feedback || []).map(f => `<li class="text-slate-300">${f}</li>`).join('') || '<li class="text-slate-500">No specific feedback.</li>';
-            document.getElementById('fb-suggestions').innerHTML = (fb.suggestions || []).map(s => `<li class="before:content-['â†’'] before:mr-1 before:text-blue-500">${s}</li>`).join('');
+            document.getElementById('fb-suggestions').innerHTML = (fb.suggestions || []).map(s => `<li class="before:content-['→'] before:mr-1 before:text-blue-500">${s}</li>`).join('');
             if (fb.execution_output?.trim()) {
                 document.getElementById('exec-output-section').classList.remove('hidden');
                 document.getElementById('fb-exec-output').textContent = fb.execution_output;
@@ -553,7 +554,7 @@
 
         async function loadHistory() {
             try {
-                const res = await fetch('http://localhost:5000/api/interviews/submissions', { headers: authHeaders });
+                const res = await fetch(`${CONFIG.API_BASE_URL}/interviews/submissions`, { headers: authHeaders });
                 const subs = await res.json();
                 const list = document.getElementById('history-list');
                 list.innerHTML = subs.length === 0
@@ -561,7 +562,7 @@
                     : subs.map(s => `<div class="rounded-lg bg-slate-800/50 px-2.5 py-2 border border-slate-800">
                         <div class="flex items-center justify-between mb-0.5">
                             <span class="text-[11px] text-slate-200 font-medium truncate flex-1">${s.question_title}</span>
-                            <span class="text-[10px] font-bold ml-1 ${s.status === 'passed' ? 'text-green-400' : 'text-red-400'}">${s.status === 'passed' ? 'âœ“' : 'âœ—'}</span>
+                            <span class="text-[10px] font-bold ml-1 ${s.status === 'passed' ? 'text-green-400' : 'text-red-400'}">${s.status === 'passed' ? '✓' : '✗'}</span>
                         </div>
                         <div class="flex text-[10px] text-slate-500 gap-2">
                             <span>${s.language}</span><span class="ml-auto">Score: <b class="text-slate-300">${s.score}</b></span>
@@ -572,7 +573,7 @@
 
         async function loadStats() {
             try {
-                const res = await fetch('http://localhost:5000/api/interviews/submissions', { headers: authHeaders });
+                const res = await fetch(`${CONFIG.API_BASE_URL}/interviews/submissions`, { headers: authHeaders });
                 const subs = await res.json();
                 document.getElementById('stat-attempted').textContent = subs.length;
                 document.getElementById('stat-passed').textContent = subs.filter(s => s.status === 'passed').length;

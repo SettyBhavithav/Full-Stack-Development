@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api';
+// Use the dynamic config API URL instead of hardcoding localhost
+const API_URL = CONFIG.API_BASE_URL;
 
 // DOM Elements
 const showLoginBtn = document.getElementById('show-login');
